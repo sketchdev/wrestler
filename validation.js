@@ -8,7 +8,7 @@ exports.validateRequest = (config) => {
   }
 
   return async (req, res, next) => {
-    const rc = req.wristrest.options.resources[req.resource];
+    const rc = req.wrestler.options.resources[req.resource];
 
     if (rc && (req.method === 'POST' || req.method === 'PUT')) {
       const mwa = validators[req.resource] || [];
@@ -21,10 +21,10 @@ exports.validateRequest = (config) => {
 };
 
 exports.whitelist = (req, res, next) => {
-  const config = req.wristrest.options;
+  const config = req.wrestler.options;
   if (config.restrictResources && !config.resources[req.resource]) {
     let message = `${req.resource} is an unknown resource`;
-    res.wristrest.errors = { base: { messages: [message] }};
+    res.wrestler.errors = { base: { messages: [message] }};
     next(new WhitelistError(message));
   } else {
     next();
@@ -39,11 +39,11 @@ exports.handleValidationErrors = (req, res, next) => {
       if (errors[error.param] === undefined) {
         errors[error.param] = {messages: []}
       }
-      
+
       errors[error.param].messages.push(error.msg);
     }
-    
-    res.wristrest.errors = errors;
+
+    res.wrestler.errors = errors;
     next(new ValidationError(`data for ${req.resource} is not valid`));
   } else {
     next();

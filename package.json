@@ -1,23 +1,23 @@
 {
-  "name": "wristrest",
-  "version": "0.2.1",
+  "name": "wrestler",
+  "version": "0.2.2",
   "description": "An express middleware which provides a solid foundation for a RESTful API.",
   "keywords": [
     "restful",
     "api",
-    "nodejs",
+    "node",
     "express"
   ],
-  "main": "wristrest.js",
+  "main": "wrestler.js",
   "scripts": {
     "test": "mocha --exit --delay"
   },
   "author": "Cody Frederick",
   "bugs": {
-    "url": "https://github.com/sketchdev/wristrest/issues"
+    "url": "https://github.com/sketchdev/wrestler/issues"
   },
   "repository": {
-    "url": "https://github.com/sketchdev/wristrest"
+    "url": "https://github.com/sketchdev/wrestler"
   },
   "license": "MIT",
   "dependencies": {

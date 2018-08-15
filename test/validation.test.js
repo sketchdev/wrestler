@@ -2,7 +2,7 @@ require('dotenv').config();
 require('./setup');
 const request = require('supertest');
 const express = require('express');
-const wristrest = require('../wristrest');
+const wrestler = require('../wrestler');
 
 describe('validation', () => {
   describe('whitelisting', () => {
@@ -42,6 +42,6 @@ function buildApp(config) {
   const app = express();
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(wristrest({...config, handleUsers: false}));
+  app.use(wrestler({...config, handleUsers: false}));
   return app;
 }

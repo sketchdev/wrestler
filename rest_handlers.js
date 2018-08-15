@@ -22,7 +22,7 @@ const handleRestfulGetRequest = async (req, res) => {
       const skip = skipFromQuery(req);
       const filter = appendUserScope(req, req.query);
       const docs = await req.db.collection(req.resource).find(filter, { projection }).sort(sort).limit(limit + 1).skip(skip).toArray();
-      const results = res.wristrest.transformer ? res.wristrest.transformer(docs) : transformManyId(docs);
+      const results = res.wrestler.transformer ? res.wrestler.transformer(docs) : transformManyId(docs);
       const links = linksFromResult(req, req.resource, results, projectionQuery, sortQuery, limit, skip);
       if (results.length < limit) {
         return res.links(links).json(results);
@@ -42,7 +42,7 @@ const handleRestfulPostRequest = async (req, res) => {
     const now = new Date();
     const doc = appendUserId(req, Object.assign(req.body, { createdAt: now, updatedAt: now }));
     const insertedDoc = (await req.db.collection(req.resource).insertOne(doc)).ops[0];
-    const result = res.wristrest.transformer ? res.wristrest.transformer(insertedDoc) : transformOneId(insertedDoc);
+    const result = res.wrestler.transformer ? res.wrestler.transformer(insertedDoc) : transformOneId(insertedDoc);
     return res.location(`/${req.resource}/${result.id}`).status(201).json(result);
   }
 };
@@ -57,7 +57,7 @@ const handleRestfulPutRequest = async (req, res) => {
     const doc = appendUserId(req, Object.assign({}, req.body, { createdAt: now, updatedAt: now }));
     const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
     const replacedDoc = (await req.db.collection(req.resource).findOneAndReplace(filter, doc, { upsert: true, returnOriginal: false })).value;
-    const result = res.wristrest.transformer ? res.wristrest.transformer(replacedDoc) : transformOneId(replacedDoc);
+    const result = res.wrestler.transformer ? res.wrestler.transformer(replacedDoc) : transformOneId(replacedDoc);
     return res.json(result);
   }
 };
@@ -72,7 +72,7 @@ const handleRestfulPatchRequest = async (req, res) => {
     const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
     console.log('patch', filter, doc);
     const updatedDoc = (await req.db.collection(req.resource).findOneAndUpdate(filter, { $set: doc }, { upsert: false, returnOriginal: false })).value;
-    const result = res.wristrest.transformer ? res.wristrest.transformer(updatedDoc) : transformOneId(updatedDoc);
+    const result = res.wrestler.transformer ? res.wrestler.transformer(updatedDoc) : transformOneId(updatedDoc);
     return res.json(result);
   }
 };
@@ -137,7 +137,7 @@ const projectionFromQuery = (req) => {
 const limitFromQuery = (req) => {
   let { limit } = req.query;
   delete req.query.limit;
-  return parseInt(limit, 10) || req.wristrest.options.pageSize;
+  return parseInt(limit, 10) || req.wrestler.options.pageSize;
 };
 
 const skipFromQuery = (req) => {

@@ -1,4 +1,4 @@
-/** @namespace req.wristrest */
+/** @namespace req.wrestler */
 
 const { WhitelistError, ValidationError, LoginError } = require('./errors');
 const { MongoClient } = require('mongodb');
@@ -16,9 +16,9 @@ const defaultOptions = {
 };
 
 const setOptions = (options) => async (req, res, next) => {
-  req.wristrest = {};
-  res.wristrest = {};
-  req.wristrest.options = options;
+  req.wrestler = {};
+  res.wrestler = {};
+  req.wrestler.options = options;
   next();
 };
 
@@ -56,7 +56,7 @@ const parseRequest = async (req, res, next) => {
 };
 
 const transformErrors = (err, req, res, next) => {
-  if (res.wristrest.errors) {
+  if (res.wrestler.errors) {
     let code = 400;
     if (err instanceof WhitelistError) {
       code = 404;
@@ -65,7 +65,7 @@ const transformErrors = (err, req, res, next) => {
     } else if (err instanceof LoginError) {
       code = 401;
     }
-    res.status(code).json(res.wristrest.errors);
+    res.status(code).json(res.wrestler.errors);
   } else {
     next(err);
   }

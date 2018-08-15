@@ -16,7 +16,7 @@ const DIGEST = 'sha512';
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'efwpoeiurpoijk123`3asd;lkj32E@#;l3kj3#Eeplk3j34fpoiu-Oiu;lkj';
 
 exports.handleUserRequest = async (req, res, next) => {
-  if (req.wristrest.options.handleUsers && req.resource === 'user') {
+  if (req.wrestler.options.handleUsers && req.resource === 'user') {
     try {
       await login(req, res, next);
       await handleGetRequest(req, res, next);
@@ -32,7 +32,7 @@ exports.handleUserRequest = async (req, res, next) => {
 };
 
 exports.checkAuthentication = async (req, res, next) => {
-  if (req.wristrest.options.handleUsers) {
+  if (req.wrestler.options.handleUsers) {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
@@ -58,13 +58,13 @@ exports.checkAuthorization = async (req, res, next) => {
 const login = async (req, res, next) => {
   const user = await req.db.collection(req.resource).findOne({ email: req.body.email });
   if (!user) {
-    res.wristrest.errors = { base: { messages: ['Invalid email or password'] }};
+    res.wrestler.errors = { base: { messages: ['Invalid email or password'] }};
     next(new LoginError(message));
   }
   const derivedKey = await pbkdf2(req.body.password, user.salt, user.iterations, user.keylen, user.digest);
   const passwordHash = derivedKey.toString('hex');
   if (passwordHash !== user.passwordHash) {
-    res.wristrest.errors = { base: { messages: ['Invalid email or password'] }};
+    res.wrestler.errors = { base: { messages: ['Invalid email or password'] }};
     next(new LoginError(message));
   }
   const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithms: 'HS512', expiresIn: '1h' });
@@ -72,7 +72,7 @@ const login = async (req, res, next) => {
 };
 
 const handleGetRequest = async (req, res, next) => {
-  res.wristrest.transformer = transformMany;
+  res.wrestler.transformer = transformMany;
   next();
 };
 
@@ -93,7 +93,7 @@ const handlePostRequest = async (req, res, next) => {
 
     // TODO: send email
 
-    res.wristrest.transformer = transformOne;
+    res.wrestler.transformer = transformOne;
     next();
   }
 };
@@ -110,7 +110,7 @@ const handlePutRequest = async (req, res, next) => {
 
     // TODO: send email
 
-    res.wristrest.transformer = transformOne;
+    res.wrestler.transformer = transformOne;
     next();
   }
 };
@@ -127,7 +127,7 @@ const handlePatchRequest = async (req, res, next) => {
 
     // TODO: send email (if email or password is changed)
 
-    res.wristrest.transformer = transformOne;
+    res.wrestler.transformer = transformOne;
     next();
   }
 };
