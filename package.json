@@ -1,0 +1,37 @@
+{
+  "name": "wristrest",
+  "version": "0.2.1",
+  "description": "An express middleware which provides a solid foundation for a RESTful API.",
+  "keywords": [
+    "restful",
+    "api",
+    "nodejs",
+    "express"
+  ],
+  "main": "wristrest.js",
+  "scripts": {
+    "test": "mocha --exit --delay"
+  },
+  "author": "Cody Frederick",
+  "bugs": {
+    "url": "https://github.com/sketchdev/wristrest/issues"
+  },
+  "repository": {
+    "url": "https://github.com/sketchdev/wristrest"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express-validator": "^5.3.0",
+    "jsonwebtoken": "8.3.0",
+    "mongodb": "^3.1.1",
+    "validator": "^10.5.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "mocha": "^5.2.0",
+    "morgan": "^1.9.0",
+    "supertest": "^3.1.0"
+  }
+}
