@@ -1,4 +1,3 @@
-require('dotenv').config();
 require('./setup');
 const request = require('supertest');
 const express = require('express');

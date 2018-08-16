@@ -1,4 +1,3 @@
-require('dotenv').config();
 require('./setup');
 
 const express = require('express');
@@ -13,9 +12,13 @@ app.use(wrestler({ handleUsers: true }));
 const request = require('supertest')(app);
 
 describe('user_handlers', () => {
+  
+  before(() => {
+    app.wrestler = { db: testDb };
+  });
 
   beforeEach(async () => {
-    await testDb.dropDatabase();
+    await testDb.dropCollections('user');
   });
 
   describe('POST', () => {
@@ -27,16 +30,10 @@ describe('user_handlers', () => {
       assert.exists(resp.body.createdAt);
       assert.exists(resp.body.updatedAt);
       assert.exists(resp.body.id);
-      return Promise.resolve();
     });
 
     it('returns an error if no email is supplied', async () => {
-      const resp = await request.post('/user').send({ emale: 'bob@mailinator.com', password: 'welcome@1' }).expect(400);
-      assert.equal(resp.body.email, 'bob@mailinator.com');
-      assert.exists(resp.body.createdAt);
-      assert.exists(resp.body.updatedAt);
-      assert.exists(resp.body.id);
-      return Promise.resolve();
+      await request.post('/user').send({ emale: 'bob@mailinator.com', password: 'welcome@1' }).expect(400);
     });
 
   });

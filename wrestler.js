@@ -1,10 +1,10 @@
 /** @namespace req.wrestler */
 
 const { WhitelistError, ValidationError, LoginError } = require('./errors');
-const { MongoClient } = require('mongodb');
 const { handleRestRequest } = require('./rest_handlers');
 const { handleUserRequest, checkAuthentication, checkAuthorization } = require('./user_handlers');
 const { whitelist, validateRequest, handleValidationErrors } = require('./validation');
+const dbUtil = require('./db/db-util');
 
 let db;
 
@@ -31,10 +31,11 @@ const setCors = async (req, res, next) => {
 const connectToDatabase = async (req, res, next) => {
   try {
     if (!db) {
-      const dbName = process.env.DB_NAME;
-      const dbUri = process.env.DB_URI;
-      const client = await MongoClient.connect(dbUri, { useNewUrlParser: true });
-      db = client.db(dbName);
+      if (req.app.wrestler && dbUtil.isValidDriver(req.app.wrestler.db)) {
+        db = req.app.wrestler.db;
+      } else {
+        db = await dbUtil.connect();
+      }
     }
     req.db = db;
     next();
@@ -72,7 +73,7 @@ const transformErrors = (err, req, res, next) => {
 };
 
 module.exports = (options) => {
-  const opts = Object.assign(defaultOptions, options);
+  const opts = Object.assign({}, defaultOptions, options);
   return [
     setOptions(opts),
     setCors,

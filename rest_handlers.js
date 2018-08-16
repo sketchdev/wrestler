@@ -1,5 +1,3 @@
-const { ObjectID } = require('mongodb');
-
 exports.handleRestRequest = async (req, res, next) => {
   try {
     await handleRestfulGetRequest(req, res);
@@ -21,7 +19,7 @@ const handleRestfulGetRequest = async (req, res) => {
       const limit = limitFromQuery(req);
       const skip = skipFromQuery(req);
       const filter = appendUserScope(req, req.query);
-      const docs = await req.db.collection(req.resource).find(filter, { projection }).sort(sort).limit(limit + 1).skip(skip).toArray();
+      const docs = await req.db.find(req.resource, filter, { projection }, {sort, limit: limit + 1, skip});
       const results = res.wrestler.transformer ? res.wrestler.transformer(docs) : transformManyId(docs);
       const links = linksFromResult(req, req.resource, results, projectionQuery, sortQuery, limit, skip);
       if (results.length < limit) {
@@ -30,8 +28,14 @@ const handleRestfulGetRequest = async (req, res) => {
       results.pop();
       return res.links(links).json(results);
     } else {
-      const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
-      return res.json(transformManyId(await req.db.collection(req.resource).find(filter, { projection }).limit(1).toArray())[0]);
+      const _id = req.db.toObjectId(req.id);
+      const filter = appendUserScope(req, { _id });
+      const item = await req.db.findOne(req.resource, filter, { projection });
+      if (item) {
+        return res.json(transformOneId(item));
+      } else {
+        return res.sendStatus(404);
+      }
     }
   }
 };
@@ -41,7 +45,7 @@ const handleRestfulPostRequest = async (req, res) => {
     delete req.body.id;
     const now = new Date();
     const doc = appendUserId(req, Object.assign(req.body, { createdAt: now, updatedAt: now }));
-    const insertedDoc = (await req.db.collection(req.resource).insertOne(doc)).ops[0];
+    const insertedDoc = await req.db.insertOne(req.resource, doc);
     const result = res.wrestler.transformer ? res.wrestler.transformer(insertedDoc) : transformOneId(insertedDoc);
     return res.location(`/${req.resource}/${result.id}`).status(201).json(result);
   }
@@ -55,8 +59,8 @@ const handleRestfulPutRequest = async (req, res) => {
     delete req.body.id;
     const now = new Date();
     const doc = appendUserId(req, Object.assign({}, req.body, { createdAt: now, updatedAt: now }));
-    const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
-    const replacedDoc = (await req.db.collection(req.resource).findOneAndReplace(filter, doc, { upsert: true, returnOriginal: false })).value;
+    const filter = appendUserScope(req, { _id: req.db.toObjectId(req.id) });
+    const replacedDoc = await req.db.findOneAndReplace(req.resource, filter, doc);
     const result = res.wrestler.transformer ? res.wrestler.transformer(replacedDoc) : transformOneId(replacedDoc);
     return res.json(result);
   }
@@ -69,9 +73,9 @@ const handleRestfulPatchRequest = async (req, res) => {
     }
     delete req.body.id;
     const doc = appendUserId(req, Object.assign({}, req.body, { updatedAt: new Date() }));
-    const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
+    const filter = appendUserScope(req, { _id: req.db.toObjectId(req.id) });
     console.log('patch', filter, doc);
-    const updatedDoc = (await req.db.collection(req.resource).findOneAndUpdate(filter, { $set: doc }, { upsert: false, returnOriginal: false })).value;
+    const updatedDoc = await req.db.findOneAndUpdate(req.resource, filter, doc);
     const result = res.wrestler.transformer ? res.wrestler.transformer(updatedDoc) : transformOneId(updatedDoc);
     return res.json(result);
   }
@@ -82,8 +86,8 @@ const handleRestfulDeleteRequest = async (req, res) => {
     if (req.id === undefined) {
       return res.sendStatus(400);
     }
-    const filter = appendUserScope(req, { _id: ObjectID.createFromHexString(req.id) });
-    await req.db.collection(req.resource).deleteOne(filter);
+    const filter = appendUserScope(req, { _id: req.db.toObjectId(req.id) });
+    await req.db.deleteOne(req.resource, filter);
     // TODO: maybe enumerate a whitelist of collections and delete all child documents for this userId in a transaction?
     return res.sendStatus(204);
   }

@@ -60,7 +60,7 @@ exports.checkAuthorization = async (req, res, next) => {
 
 const login = async (req, res) => {
   if (isLogin(req)) {
-    const user = await req.db.collection(req.resource).findOne({ email: req.body.email });
+    const user = await req.db.findOne(req.resource, { email: req.body.email });
     if (!user) {
       res.wrestler.errors = { base: { messages: ['Invalid email or password'] } };
       throw new LoginError();
@@ -87,8 +87,11 @@ const handlePostRequest = async (req, res) => {
     const { email, password } = req.body;
     req.body = sanitizeBody(req);
 
-    const errors = validateUpsert(req, email, password);
-    if (errors) throw new CreateUserError();
+    const errors = await validateUpsert(req, email, password);
+    if (errors) {
+      res.wrestler.errors = { base: { messages: ['user is invalid'] }};
+      throw new CreateUserError();
+    }
 
     const salt = crypto.randomBytes(128).toString('base64');
     const derivedKey = await pbkdf2(password, salt, ITERATIONS, KEYLEN, DIGEST);
@@ -162,7 +165,7 @@ const validateUpsert = async (req, email, password) => {
   if (!password) {
     errors.password = { messages: ['Password is required'] };
   }
-  if (email && errors.email === undefined && await req.db.collection(req.resource).countDocuments({ email }) !== 0) {
+  if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
     errors.email = { messages: ['Email already exists'] };
   }
   return Object.keys(errors).length > 0 ? errors : undefined;
@@ -173,7 +176,7 @@ const validatePatch = async (req, email) => {
   if (email && !validator.isEmail(email)) {
     errors.email = { messages: ['Email is invalid'] };
   }
-  if (email && errors.email === undefined && await req.db.collection(req.resource).countDocuments({ email }) !== 0) {
+  if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
     errors.email = { messages: ['Email already exists'] };
   }
   return Object.keys(errors).length > 0 ? errors : undefined;
