@@ -34,7 +34,7 @@ const connectToDatabase = async (req, res, next) => {
       if (req.app.wrestler && dbUtil.isValidDriver(req.app.wrestler.db)) {
         db = req.app.wrestler.db;
       } else {
-        db = await dbUtil.connect();
+        db = await dbUtil.connect(req.wrestler.options);
       }
     }
     req.db = db;

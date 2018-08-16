@@ -1,7 +1,8 @@
 const Datastore = require('nedb');
 
 module.exports = class NeDbDriver {
-  constructor() {
+  constructor(persistentPath) {
+    this.persistentPath = persistentPath;
     this.datastores = {};
   }
 
@@ -61,7 +62,13 @@ module.exports = class NeDbDriver {
   _datastore(name) {
     let ds = this.datastores[name];
     if (!ds) {
-      ds = new Datastore({filename: `data/${name}`, inMemoryOnly: true});
+      const filename = this.persistentPath ? `${this.persistentPath}/${name}.db` : `${name}.db`;
+      const options = {
+        filename,
+        inMemoryOnly: !this.persistentPath,
+        autoload: true
+      };
+      ds = new Datastore(options);
       this.datastores[name] = ds;
     }
     return ds;
