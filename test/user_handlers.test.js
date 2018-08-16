@@ -129,5 +129,11 @@ describe('user_handlers', () => {
     });
 
   });
+  
+  describe('Authentication', () => {
+    it('requires authentication if handleUsers is enabled', async () => {
+      await request.get('/widget').expect(401);
+    });
+  });
 
 });

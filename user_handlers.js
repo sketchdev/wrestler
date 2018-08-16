@@ -16,7 +16,7 @@ const DIGEST = 'sha512';
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'efwpoeiurpoijk123`3asd;lkj32E@#;l3kj3#Eeplk3j34fpoiu-Oiu;lkj';
 
 exports.checkAuthentication = async (req, res, next) => {
-  if (userHandlingIsEnabled(req) && !isCreateUser(req) && !isLogin(req)) {
+  if (req.wrestler.options.handleUsers && !isCreateUser(req) && !isLogin(req)) {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
