@@ -13,6 +13,7 @@ module.exports = class MongoDriver {
     return this.db.collection(collectionName).find(filter, { projection }).sort(options.sort).limit(options.limit).skip(options.skip).toArray()
   }
 
+  // noinspection JSMethodCanBeStatic
   toObjectId(id) {
     return ObjectID.createFromHexString(id);
   }
@@ -20,19 +21,19 @@ module.exports = class MongoDriver {
   async insertOne(collectionName, doc) {
     return (await this.db.collection(collectionName).insertOne(doc)).ops[0];
   }
-  
+
   async findOneAndReplace(collectionName, filter, doc) {
     return (await this.db.collection(collectionName).findOneAndReplace(filter, doc, { upsert: true, returnOriginal: false })).value
   }
-  
+
   async findOneAndUpdate(collectionName, filter, doc) {
     return (await this.db.collection(collectionName).findOneAndUpdate(filter, { $set: doc }, { upsert: false, returnOriginal: false })).value;
   }
-  
+
   deleteOne(collectionName, filter) {
     return this.db.collection(collectionName).deleteOne(filter);
   }
-  
+
   countDocuments(collectionName, filter) {
     return this.db.collection(collectionName).countDocuments(filter);
   }

@@ -15,41 +15,17 @@ const KEYLEN = 64;
 const DIGEST = 'sha512';
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'efwpoeiurpoijk123`3asd;lkj32E@#;l3kj3#Eeplk3j34fpoiu-Oiu;lkj';
 
-exports.handleUserRequest = async (req, res, next) => {
-  if (req.wrestler.options.handleUsers && req.resource === 'user') {
-    try {
-      await login(req, res);
-      await handleGetRequest(req, res);
-      await handlePostRequest(req, res);
-      await handlePutRequest(req, res);
-      await handlePatchRequest(req, res);
-      await handleDeleteRequest(req, res);
-    } catch (err) {
-      return next(err);
-    }
-  }
-  next();
-};
-
-const isCreateUser = (req) => {
-  return req.method === 'POST' && req.path === '/user';
-};
-
-const isLogin = (req) => {
-  return req.method === 'POST' && req.path === '/user/login';
-};
-
 exports.checkAuthentication = async (req, res, next) => {
-  if (req.wrestler.options.handleUsers && !isCreateUser(req) && !isLogin(req)) {
+  if (userHandlingIsEnabled(req) && !isCreateUser(req) && !isLogin(req)) {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
-        const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithms: 'HS512' });
-        req.user.id = decoded.id;
+        const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithm: 'HS512' });
+        req.wrestler.user = { id: decoded.id };
         return next();
       }
     }
-    res.sendStatus(401);
+    return res.sendStatus(401);
   }
   next();
 };
@@ -58,39 +34,47 @@ exports.checkAuthorization = async (req, res, next) => {
   next();
 };
 
-const login = async (req, res) => {
-  if (isLogin(req)) {
+exports.handleLogin = async (req, res, next) => {
+  if (userHandlingIsEnabled(req) && isLogin(req)) {
     const user = await req.db.findOne(req.resource, { email: req.body.email });
     if (!user) {
       res.wrestler.errors = { base: { messages: ['Invalid email or password'] } };
-      throw new LoginError();
+      return next(new LoginError());
     }
     const derivedKey = await pbkdf2(req.body.password, user.salt, user.iterations, user.keylen, user.digest);
     const passwordHash = derivedKey.toString('hex');
     if (passwordHash !== user.passwordHash) {
       res.wrestler.errors = { base: { messages: ['Invalid email or password'] } };
-      throw new LoginError();
+      return next(new LoginError());
     }
-    const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithms: 'HS512', expiresIn: '1h' });
-    res.json({ token });
+    try {
+      const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
+      return res.json({ token });
+    } catch (err) {
+      console.error(err);
+      res.wrestler.errors = { base: { messages: ['Unexpected error'] } };
+      return next(new LoginError());
+    }
   }
+  next();
 };
 
-const handleGetRequest = async (req, res) => {
-  if (req.method === 'GET') {
+exports.handleUserGetRequest = async (req, res, next) => {
+  if (userHandlingIsEnabled(req) && req.method === 'GET') {
     res.wrestler.transformer = transformMany;
   }
+  next();
 };
 
-const handlePostRequest = async (req, res) => {
-  if (isCreateUser(req)) {
+exports.handleUserPostRequest = async (req, res, next) => {
+  if (userHandlingIsEnabled(req) && isCreateUser(req)) {
     const { email, password } = req.body;
     req.body = sanitizeBody(req);
 
     const errors = await validateUpsert(req, email, password);
     if (errors) {
-      res.wrestler.errors = { base: { messages: ['user is invalid'] }};
-      throw new CreateUserError();
+      res.wrestler.errors = errors;
+      return next(new CreateUserError());
     }
 
     const salt = crypto.randomBytes(128).toString('base64');
@@ -102,38 +86,60 @@ const handlePostRequest = async (req, res) => {
 
     res.wrestler.transformer = transformOne;
   }
+  next();
 };
 
-const handlePutRequest = async (req, res) => {
-  if (req.method === 'PUT') {
-    const { email, password, passwordConfirmation } = req.body;
+exports.handleUserPutRequest = async (req, res, next) => {
+  if (userHandlingIsEnabled(req) && req.method === 'PUT') {
+    const { email, password } = req.body;
     req.body = sanitizeBody(req);
 
-    const errors = validateUpsert(req, email, password, passwordConfirmation);
-    if (errors) throw new ReplaceUserError();
+    const errors = await validateUpsert(req, email, password);
+    if (errors) {
+      res.wrestler.errors = errors;
+      return next(new ReplaceUserError());
+    }
 
     // TODO: send email
 
     res.wrestler.transformer = transformOne;
   }
+  next();
 };
 
-const handlePatchRequest = async (req, res) => {
-  if (req.method === 'PATCH') {
+exports.handleUserPatchRequest = async (req, res, next) => {
+  if (userHandlingIsEnabled(req) && req.method === 'PATCH') {
     const { email } = req.body;
     req.body = sanitizeBody(req);
 
-    const errors = validatePatch(req, email);
-    if (errors) throw new UpdateUserError();
+    const errors = await validatePatch(req, email);
+    if (errors) {
+      res.wrestler.errors = errors;
+      return next(new UpdateUserError());
+    }
 
     // TODO: send email (if email or password is changed)
 
     res.wrestler.transformer = transformOne;
   }
+  next();
 };
 
-const handleDeleteRequest = async (req, res) => {
+exports.handleUserDeleteRequest = async (req, res, next) => {
   // TODO: cleanup child resources?
+  next();
+};
+
+const isCreateUser = (req) => {
+  return req.method === 'POST' && req.path === '/user';
+};
+
+const isLogin = (req) => {
+  return req.method === 'POST' && req.path === '/user/login';
+};
+
+const userHandlingIsEnabled = (req) => {
+  return req.wrestler.options.handleUsers && req.resource === 'user';
 };
 
 const sanitizeBody = (req) => {
@@ -165,8 +171,13 @@ const validateUpsert = async (req, email, password) => {
   if (!password) {
     errors.password = { messages: ['Password is required'] };
   }
-  if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
-    errors.email = { messages: ['Email already exists'] };
+  try {
+    if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
+      errors.email = { messages: ['Email already exists'] };
+    }
+  } catch (err) {
+    console.error(err); // TODO: do better logging
+    errors.base = { messages: 'Unexpected error' };
   }
   return Object.keys(errors).length > 0 ? errors : undefined;
 };
@@ -176,8 +187,13 @@ const validatePatch = async (req, email) => {
   if (email && !validator.isEmail(email)) {
     errors.email = { messages: ['Email is invalid'] };
   }
-  if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
-    errors.email = { messages: ['Email already exists'] };
+  try {
+    if (email && errors.email === undefined && (await req.db.countDocuments(req.resource, { email })) !== 0) {
+      errors.email = { messages: ['Email already exists'] };
+    }
+  } catch (err) {
+    console.error(err); // TODO: do better logging
+    errors.base = { messages: 'Unexpected error' };
   }
   return Object.keys(errors).length > 0 ? errors : undefined;
 };

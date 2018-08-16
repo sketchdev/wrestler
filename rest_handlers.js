@@ -94,19 +94,19 @@ const handleRestfulDeleteRequest = async (req, res) => {
 };
 
 const appendUserScope = (req, filter) => {
-  if (req.userId) {
+  if (req.wrestler && req.wrestler.user && req.wrestler.user.id) {
     if (req.resource === 'user') {
-      // TODO: if req.userId !== req.id, then throw error i think
-      return Object.assign({}, filter, { _id: ObjectID.createFromHexString(req.userId) });
+      // TODO: if req.wrestler.user.id !== req.id, then throw error i think
+      return Object.assign({}, filter, { _id: req.db.toObjectId(req.wrestler.user.id) });
     }
-    return Object.assign({}, filter, { userId: req.userId });
+    return Object.assign({}, filter, { userId: req.db.toObjectId(req.wrestler.user.id) });
   }
   return filter;
 };
 
 const appendUserId = (req, doc) => {
-  if (req.userId && req.resource !== 'user') {
-    return Object.assign({}, doc, { userId: req.userId });
+  if (req.wrestler && req.wrestler.user && req.wrestler.user.id && req.resource !== 'user') {
+    return Object.assign({}, doc, { userId: req.wrestler.user.id });
   }
   return doc;
 };

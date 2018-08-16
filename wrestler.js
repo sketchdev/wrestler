@@ -2,9 +2,9 @@
 
 const { WhitelistError, ValidationError, LoginError } = require('./errors');
 const { handleRestRequest } = require('./rest_handlers');
-const { handleUserRequest, checkAuthentication, checkAuthorization } = require('./user_handlers');
+const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./user_handlers');
 const { whitelist, validateRequest, handleValidationErrors } = require('./validation');
-const dbUtil = require('./db/db-util');
+const dbUtil = require('./db/db_util');
 
 let db;
 
@@ -84,7 +84,12 @@ module.exports = (options) => {
     whitelist,
     validateRequest(opts),
     handleValidationErrors,
-    handleUserRequest,
+    handleLogin,
+    handleUserGetRequest,
+    handleUserPostRequest,
+    handleUserPutRequest,
+    handleUserPatchRequest,
+    handleUserDeleteRequest,
     handleRestRequest,
     transformErrors
   ];

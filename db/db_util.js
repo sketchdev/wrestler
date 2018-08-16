@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
-const MongoDriver = require('./MongoDriver');
-const NeDbDriver = require('./NeDbDriver');
+const MongoDriver = require('./mongo_driver');
+const NeDbDriver = require('./nedb_driver');
 
 exports.connect = async (options = {}) => {
   const mongodbUri = process.env.MONGO_DB_URI;

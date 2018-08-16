@@ -26,21 +26,21 @@ module.exports = class NeDbDriver {
       ds.insert(doc, handler(resolve, reject));
     });
   }
-  
+
   findOneAndReplace(collectionName, filter, doc) {
     const ds = this._datastore(collectionName);
     return new Promise((resolve, reject) => {
       ds.update(filter, doc, {upsert: true, returnUpdatedDocs: true}, handler(resolve, reject, 1));
     });
   }
-  
+
   findOneAndUpdate(collectionName, filter, doc) {
     const ds = this._datastore(collectionName);
     return new Promise((resolve, reject) => {
       ds.update(filter, {$set: doc}, {upsert: false, returnUpdatedDocs: true}, handler(resolve, reject, 1));
     });
   }
-  
+
   deleteOne(collectionName, filter) {
     const ds = this._datastore(collectionName);
     return new Promise((resolve, reject) => {
@@ -55,6 +55,7 @@ module.exports = class NeDbDriver {
     });
   }
 
+  // noinspection JSMethodCanBeStatic
   toObjectId(id) {
     return id;
   }
