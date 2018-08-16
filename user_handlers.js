@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const jwtSign = util.promisify(jwt.sign);
 const jwtVerify = util.promisify(jwt.verify);
 const pbkdf2 = util.promisify(crypto.pbkdf2);
-const { LoginError } = require('./errors');
+const { LoginError, CreateUserError, ReplaceUserError, UpdateUserError } = require('./errors');
 
 const ITERATIONS = 10000;
 const KEYLEN = 64;
@@ -18,12 +18,12 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'efwpoeiurpoijk123`3asd;lkj
 exports.handleUserRequest = async (req, res, next) => {
   if (req.wrestler.options.handleUsers && req.resource === 'user') {
     try {
-      await login(req, res, next);
-      await handleGetRequest(req, res, next);
-      await handlePostRequest(req, res, next);
-      await handlePutRequest(req, res, next);
-      await handlePatchRequest(req, res, next);
-      await handleDeleteRequest(req, res, next);
+      await login(req, res);
+      await handleGetRequest(req, res);
+      await handlePostRequest(req, res);
+      await handlePutRequest(req, res);
+      await handlePatchRequest(req, res);
+      await handleDeleteRequest(req, res);
     } catch (err) {
       return next(err);
     }
@@ -31,60 +31,64 @@ exports.handleUserRequest = async (req, res, next) => {
   next();
 };
 
+const isCreateUser = (req) => {
+  return req.method === 'POST' && req.path === '/user';
+};
+
+const isLogin = (req) => {
+  return req.method === 'POST' && req.path === '/user/login';
+};
+
 exports.checkAuthentication = async (req, res, next) => {
-  if (req.wrestler.options.handleUsers) {
+  if (req.wrestler.options.handleUsers && !isCreateUser(req) && !isLogin(req)) {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
-        try {
-          const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithms: 'HS512' });
-          req.user.id = decoded.id;
-          return next();
-        } catch (err) {
-          return next(err);
-        }
+        const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithms: 'HS512' });
+        req.user.id = decoded.id;
+        return next();
       }
     }
     res.sendStatus(401);
-  } else {
-    next();
   }
+  next();
 };
 
 exports.checkAuthorization = async (req, res, next) => {
   next();
 };
 
-const login = async (req, res, next) => {
-  const user = await req.db.collection(req.resource).findOne({ email: req.body.email });
-  if (!user) {
-    res.wrestler.errors = { base: { messages: ['Invalid email or password'] }};
-    next(new LoginError(message));
+const login = async (req, res) => {
+  if (isLogin(req)) {
+    const user = await req.db.collection(req.resource).findOne({ email: req.body.email });
+    if (!user) {
+      res.wrestler.errors = { base: { messages: ['Invalid email or password'] } };
+      throw new LoginError();
+    }
+    const derivedKey = await pbkdf2(req.body.password, user.salt, user.iterations, user.keylen, user.digest);
+    const passwordHash = derivedKey.toString('hex');
+    if (passwordHash !== user.passwordHash) {
+      res.wrestler.errors = { base: { messages: ['Invalid email or password'] } };
+      throw new LoginError();
+    }
+    const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithms: 'HS512', expiresIn: '1h' });
+    res.json({ token });
   }
-  const derivedKey = await pbkdf2(req.body.password, user.salt, user.iterations, user.keylen, user.digest);
-  const passwordHash = derivedKey.toString('hex');
-  if (passwordHash !== user.passwordHash) {
-    res.wrestler.errors = { base: { messages: ['Invalid email or password'] }};
-    next(new LoginError(message));
-  }
-  const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithms: 'HS512', expiresIn: '1h' });
-  res.json({ token });
 };
 
-const handleGetRequest = async (req, res, next) => {
-  res.wrestler.transformer = transformMany;
-  next();
+const handleGetRequest = async (req, res) => {
+  if (req.method === 'GET') {
+    res.wrestler.transformer = transformMany;
+  }
 };
 
-const handlePostRequest = async (req, res, next) => {
-  if (req.method === 'POST') {
+const handlePostRequest = async (req, res) => {
+  if (isCreateUser(req)) {
     const { email, password } = req.body;
     req.body = sanitizeBody(req);
 
-    const fieldErrors = validateUpsert(req.db, email, password);
-    if (fieldErrors.length > 0) {
-      return next(fieldErrors);
-    }
+    const errors = validateUpsert(req, email, password);
+    if (errors) throw new CreateUserError();
 
     const salt = crypto.randomBytes(128).toString('base64');
     const derivedKey = await pbkdf2(password, salt, ITERATIONS, KEYLEN, DIGEST);
@@ -94,47 +98,39 @@ const handlePostRequest = async (req, res, next) => {
     // TODO: send email
 
     res.wrestler.transformer = transformOne;
-    next();
   }
 };
 
-const handlePutRequest = async (req, res, next) => {
+const handlePutRequest = async (req, res) => {
   if (req.method === 'PUT') {
     const { email, password, passwordConfirmation } = req.body;
     req.body = sanitizeBody(req);
 
-    const fieldErrors = validateUpsert(req.db, email, password, passwordConfirmation);
-    if (fieldErrors.length > 0) {
-      return next(fieldErrors);
-    }
+    const errors = validateUpsert(req, email, password, passwordConfirmation);
+    if (errors) throw new ReplaceUserError();
 
     // TODO: send email
 
     res.wrestler.transformer = transformOne;
-    next();
   }
 };
 
-const handlePatchRequest = async (req, res, next) => {
+const handlePatchRequest = async (req, res) => {
   if (req.method === 'PATCH') {
-    const { email, password, passwordConfirmation } = req.body;
+    const { email } = req.body;
     req.body = sanitizeBody(req);
 
-    const fieldErrors = validatePatch(req.db, email, password, passwordConfirmation);
-    if (fieldErrors.length > 0) {
-      return next(fieldErrors);
-    }
+    const errors = validatePatch(req, email);
+    if (errors) throw new UpdateUserError();
 
     // TODO: send email (if email or password is changed)
 
     res.wrestler.transformer = transformOne;
-    next();
   }
 };
 
-const handleDeleteRequest = async (req, res, next) => {
+const handleDeleteRequest = async (req, res) => {
   // TODO: cleanup child resources?
-  next();
 };
 
 const sanitizeBody = (req) => {
@@ -151,35 +147,36 @@ const sanitizeBody = (req) => {
   return body;
 };
 
-const validateUpsert = async (db, email, password) => {
-  const fieldErrors = [];
+const validateUpsert = async (req, email, password) => {
+  const errors = {};
   if (!email) {
-    fieldErrors.push({ code: -1001, field: 'email', message: 'Email is required' });
+    errors.email = { messages: ['Email is required'] };
   }
   if (email && !validator.isEmail(email)) {
-    fieldErrors.push({ code: -1005, field: 'email', message: 'Email is invalid' });
+    if (errors.email) {
+      errors.email.messages.push('Email is invalid');
+    } else {
+      errors.email = { messages: ['Email is invalid'] };
+    }
   }
   if (!password) {
-    fieldErrors.push({ code: -1002, field: 'password', message: 'Password is required' });
+    errors.password = { messages: ['Password is required'] };
   }
-  if (email && await db.collection(req.resource).countDocuments({ email }) !== 0) {
-    fieldErrors.push({ code: -1000, field: 'email', message: 'Email already exists' })
+  if (email && errors.email === undefined && await req.db.collection(req.resource).countDocuments({ email }) !== 0) {
+    errors.email = { messages: ['Email already exists'] };
   }
-  return fieldErrors;
+  return Object.keys(errors).length > 0 ? errors : undefined;
 };
 
-const validatePatch = async (db, email, password) => {
-  const fieldErrors = [];
+const validatePatch = async (req, email) => {
+  const errors = {};
   if (email && !validator.isEmail(email)) {
-    fieldErrors.push({ code: -1005, field: 'email', message: 'Email is invalid' });
+    errors.email = { messages: ['Email is invalid'] };
   }
-  if (!password) {
-    fieldErrors.push({ code: -1002, field: 'password', message: 'Password is required' });
+  if (email && errors.email === undefined && await req.db.collection(req.resource).countDocuments({ email }) !== 0) {
+    errors.email = { messages: ['Email already exists'] };
   }
-  if (email && await db.collection(req.resource).countDocuments({ email }) !== 0) {
-    fieldErrors.push({ code: -1000, field: 'email', message: 'Email already exists' })
-  }
-  return fieldErrors;
+  return Object.keys(errors).length > 0 ? errors : undefined;
 };
 
 const transformMany = (entities) => {

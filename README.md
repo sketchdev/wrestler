@@ -24,6 +24,8 @@ const express = require('express')
 const app = express()
 const wrestler = require('wrestler');
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(wrestler());
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
