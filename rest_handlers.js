@@ -106,7 +106,7 @@ const appendUserScope = (req, filter) => {
 
 const appendUserId = (req, doc) => {
   if (req.wrestler && req.wrestler.user && req.wrestler.user.id && req.resource !== 'user') {
-    return Object.assign({}, doc, { userId: req.wrestler.user.id });
+    return Object.assign({}, doc, { userId: req.db.toObjectId(req.wrestler.user.id) });
   }
   return doc;
 };
