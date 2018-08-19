@@ -99,7 +99,7 @@ const appendUserScope = (req, filter) => {
       // TODO: if req.wrestler.user.id !== req.id, then throw error i think
       return Object.assign({}, filter, { _id: req.db.toObjectId(req.wrestler.user.id) });
     }
-    return Object.assign({}, filter, { userId: req.db.toObjectId(req.wrestler.user.id) });
+    return Object.assign({}, filter, { userId: req.wrestler.user.id });
   }
   return filter;
 };
