@@ -54,15 +54,17 @@ describe('authorization', () => {
 
   describe('using the simple string for authorization', () => {
 
-    let app, request, tom, tomToken, jerry, jerryToken;
+    let app, request, transport, transporter, tom, tomToken, jerry, jerryToken;
 
     before(async () => {
       app = express();
       app.use(express.json());
       app.use(express.urlencoded({ extended: false }));
       app.use(wrestler({ users: { authorization: 'simple' } }));
-      app.wrestler = { db: testDb };
       request = supertest(app);
+      transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
+      transporter = nodemailer.createTransport(transport);
+      app.wrestler = { db: testDb, email: { transporter } };
     });
 
     beforeEach(async () => {
