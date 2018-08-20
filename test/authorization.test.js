@@ -2,6 +2,8 @@ require('./setup_test');
 
 const supertest = require('supertest');
 const express = require('express');
+const nodemailer = require('nodemailer');
+const uuid = require('uuid/v4');
 const wrestler = require('../wrestler');
 const { assert } = require('chai');
 
@@ -9,7 +11,7 @@ describe('authorization', () => {
 
   describe('using a function for authorization', () => {
 
-    let app, request;
+    let app, request, transport, transporter;
 
     before(async () => {
       app = express();
@@ -26,8 +28,10 @@ describe('authorization', () => {
           }
         }
       }));
-      app.wrestler = { db: testDb };
       request = supertest(app);
+      transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
+      transporter = nodemailer.createTransport(transport);
+      app.wrestler = { db: testDb, email: { transporter } };
     });
 
     beforeEach(async () => {
