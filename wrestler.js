@@ -1,9 +1,11 @@
 /** @namespace req.wrestler */
+/** @namespace req.wrestler.options.dbDriver */
 
 const { WhitelistError, ValidationError, LoginError } = require('./errors');
 const { handleRestRequest } = require('./rest_handlers');
 const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./user_handlers');
 const { whitelist, validateRequest, handleValidationErrors } = require('./validation');
+const { handleEmail } = require('./lib/email');
 const dbUtil = require('./db/db_util');
 
 let db;
@@ -16,9 +18,8 @@ const defaultOptions = {
 };
 
 const setOptions = (options) => async (req, res, next) => {
-  req.wrestler = {};
+  req.wrestler = { options };
   res.wrestler = {};
-  req.wrestler.options = options;
   next();
 };
 
@@ -91,6 +92,7 @@ module.exports = (options) => {
     handleUserPatchRequest,
     handleUserDeleteRequest,
     handleRestRequest,
+    handleEmail,
     transformErrors
   ];
 };

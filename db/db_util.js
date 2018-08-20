@@ -3,11 +3,11 @@ const MongoDriver = require('./mongo_driver');
 const NeDbDriver = require('./nedb_driver');
 
 exports.connect = async (options = {}) => {
-  const mongodbUri = process.env.MONGO_DB_URI;
-  const dbName = process.env.MONGO_DB_NAME;
-  if (mongodbUri && dbName) {
+  const mongoDbUri = process.env.MONGO_DB_URI;
+  const mongoDbName = process.env.MONGO_DB_NAME;
+  if (mongoDbUri && mongoDbName) {
     console.log('using the mongodb driver');
-    const mongodb = await connectToMongo(mongodbUri, dbName);
+    const mongodb = await connectToMongo(mongoDbUri, mongoDbName);
     return new MongoDriver(mongodb);
   } else {
     const persistentDataPath = process.env.PERSISTENT_DATA_PATH || options.persistentDataPath;

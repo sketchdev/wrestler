@@ -5,9 +5,11 @@ const crypto = require('crypto');
 const util = require('util');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const uuid = require('uuid/v4');
 const jwtSign = util.promisify(jwt.sign);
 const jwtVerify = util.promisify(jwt.verify);
 const pbkdf2 = util.promisify(crypto.pbkdf2);
+const _ = require('lodash');
 const { LoginError, CreateUserError, ReplaceUserError, UpdateUserError } = require('./errors');
 
 const ITERATIONS = 10000;
@@ -77,12 +79,19 @@ exports.handleUserPostRequest = async (req, res, next) => {
       return next(new CreateUserError());
     }
 
+    const confirmationCode = uuid();
     const salt = crypto.randomBytes(128).toString('base64');
     const derivedKey = await pbkdf2(password, salt, ITERATIONS, KEYLEN, DIGEST);
     const passwordHash = derivedKey.toString('hex');
-    req.body = Object.assign({}, req.body, { salt, iterations: ITERATIONS, keylen: KEYLEN, digest: DIGEST, passwordHash });
+    req.body = Object.assign({}, req.body, { salt, iterations: ITERATIONS, keylen: KEYLEN, digest: DIGEST, passwordHash, confirmationCode, confirmed: false });
 
-    // TODO: send email
+    res.wrestler.email = {
+      from: _.get(req, 'wrestler.options.email.from', 'no-reply@wrestlerjs.com'),
+      to: email,
+      subject: _.get(req, 'wrestler.options.email.register.subject', 'Your account has been created!'),
+      text: _.get(req, 'wrestler.options.email.register.text', `Please confirm your email. Your confirmation code is ${confirmationCode}`),
+      html: _.get(req, 'wrestler.options.email.register.html', undefined),
+    };
 
     res.wrestler.transformer = transformOne;
   }
@@ -210,5 +219,7 @@ const transformOne = (doc) => {
   delete doc.keylen;
   delete doc.digest;
   delete doc.passwordHash;
+  delete doc.confirmationCode;
+  delete doc.confirmed;
   return doc;
 };

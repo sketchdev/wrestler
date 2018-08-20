@@ -74,7 +74,6 @@ const handleRestfulPatchRequest = async (req, res) => {
     delete req.body.id;
     const doc = appendUserId(req, Object.assign({}, req.body, { updatedAt: new Date() }));
     const filter = appendUserScope(req, { _id: req.db.toObjectId(req.id) });
-    console.log('patch', filter, doc);
     const updatedDoc = await req.db.findOneAndUpdate(req.resource, filter, doc);
     const result = res.wrestler.transformer ? res.wrestler.transformer(updatedDoc) : transformOneId(updatedDoc);
     return res.json(result);

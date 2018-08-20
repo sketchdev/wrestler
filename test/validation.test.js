@@ -1,4 +1,4 @@
-require('./setup');
+require('./setup_test');
 const request = require('supertest');
 const express = require('express');
 const wrestler = require('../wrestler');
