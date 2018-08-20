@@ -18,12 +18,12 @@ const DIGEST = 'sha512';
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'efwpoeiurpoijk123`3asd;lkj32E@#;l3kj3#Eeplk3j34fpoiu-Oiu;lkj';
 
 exports.checkAuthentication = async (req, res, next) => {
-  if (req.wrestler.options.handleUsers && !isCreateUser(req) && !isLogin(req)) {
+  if (req.wrestler.options.users && !isCreateUser(req) && !isLogin(req)) {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
         const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithm: 'HS512' });
-        req.wrestler.user = { id: decoded.id };
+        req.wrestler.user = transformOne(decoded.user);
         return next();
       }
     }
@@ -33,6 +33,7 @@ exports.checkAuthentication = async (req, res, next) => {
 };
 
 exports.checkAuthorization = async (req, res, next) => {
+  if (req.wrestler.options.users && typeof req.wrestler.options.users.authorization === 'function') return req.wrestler.options.users.authorization(req, res, next);
   next();
 };
 
@@ -50,7 +51,7 @@ exports.handleLogin = async (req, res, next) => {
       return next(new LoginError());
     }
     try {
-      const token = await jwtSign({ id: user._id, email: user.email }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
+      const token = await jwtSign({ user }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
       return res.json({ token });
     } catch (err) {
       console.error(err);
@@ -148,7 +149,7 @@ const isLogin = (req) => {
 };
 
 const userHandlingIsEnabled = (req) => {
-  return req.wrestler.options.handleUsers && req.resource === 'user';
+  return req.wrestler.options.users && req.resource === 'user';
 };
 
 const sanitizeBody = (req) => {
@@ -162,6 +163,8 @@ const sanitizeBody = (req) => {
   delete body.keylen;
   delete body.digest;
   delete body.passwordHash;
+  delete body.confirmationCode;
+  delete body.confirmed;
   return body;
 };
 
@@ -171,11 +174,7 @@ const validateUpsert = async (req, email, password) => {
     errors.email = { messages: ['Email is required'] };
   }
   if (email && !validator.isEmail(email)) {
-    if (errors.email) {
-      errors.email.messages.push('Email is invalid');
-    } else {
-      errors.email = { messages: ['Email is invalid'] };
-    }
+    errors.email = { messages: ['Email is invalid'] };
   }
   if (!password) {
     errors.password = { messages: ['Password is required'] };

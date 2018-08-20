@@ -6,9 +6,9 @@ const wrestler = require('../wrestler');
 describe('validation', () => {
   describe('whitelisting', () => {
     it('can restrict to defined resources', (done) => {
-      request(buildApp({restrictResources: true})).get('/widget')
+      request(buildApp({ restrictResources: true })).get('/widget')
         .expect(404, {
-          base: {messages: ["widget is an unknown resource"]},
+          base: { messages: ["widget is an unknown resource"] },
         }, done);
     });
   });
@@ -29,9 +29,9 @@ describe('validation', () => {
         }
       });
 
-      request(app).post('/widget').send({howdy: 'partner'})
+      request(app).post('/widget').send({ howdy: 'partner' })
         .expect(422, {
-          name: {messages: ['must be at least two characters', 'required']}
+          name: { messages: ['must be at least two characters', 'required'] }
         }, done);
     });
   });
@@ -41,6 +41,6 @@ function buildApp(config) {
   const app = express();
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(wrestler({...config, handleUsers: false}));
+  app.use(wrestler({ ...config, users: false }));
   return app;
 }

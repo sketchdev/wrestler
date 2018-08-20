@@ -16,7 +16,7 @@ describe('Handling user requests', () => {
     app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(wrestler({ handleUsers: true, email: { register: { subject: 'Welcome!' }} }));
+    app.use(wrestler({ users: true, email: { register: { subject: 'Welcome!' }} }));
     request = supertest(app);
     transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     transporter = nodemailer.createTransport(transport);
@@ -90,6 +90,10 @@ describe('Handling user requests', () => {
       assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
     });
 
+    it('returns an error if the email is invalid');
+
+    it('returns an error if the database fails when detecting email uniqueness');
+
   });
 
   describe('POST /user/forgot-password', () => {
@@ -140,10 +144,16 @@ describe('Handling user requests', () => {
 
     });
 
+    it('rejects authentication attempts that are not in bearer form');
+
+    it('returns an error if the email is not found');
+
     it('returns an error if credentials are incorrect', async () => {
       const resp = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@2' }).expect(401);
       assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
     });
+
+    it('returns an error if creating the jwt fails');
 
   });
 
@@ -225,6 +235,12 @@ describe('Handling user requests', () => {
       await request.patch(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
     });
 
+    it('returns an error if the email is invalid');
+
+    it('returns an error if the email already exists');
+
+    it('returns an error if the database fails when detecting email uniqueness');
+
     context('successfully updates users details', () => {
 
       let resp;
@@ -260,6 +276,19 @@ describe('Handling user requests', () => {
       });
 
     });
+
+  });
+
+  describe('GET /user', () => {
+
+    it('successfully returns the user from the token');
+
+  });
+
+  describe('GET /user/:id', () => {
+
+    it('successfully returns the user from the token');
+    it('returns an error if the id does not match the token');
 
   });
 

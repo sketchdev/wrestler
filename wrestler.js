@@ -12,7 +12,7 @@ let db;
 
 const defaultOptions = {
   pageSize: 20,
-  handleUsers: true,
+  users: false,
   restrictResources: false,
   resources: {},
 };

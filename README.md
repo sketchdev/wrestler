@@ -37,6 +37,97 @@ app.listen(3000, () => console.log('Example app listening on port 3000!'))
 
 Done! Now you can call your local application in a RESTful way and it'll automatically work!
 
+## Configuration
+
+Wrestler is very opinionated on purpose. By default many conventions are used which can be helpful to quickly get a prototype API running.
+However, these defaults might not be for everyone. If so, we've included many options which might be exactly what you need.
+
+### Users
+
+Many APIs need some type of user support. Wrestler includes a common email/password user model with Bearer authentication.
+
+__Examples__
+
+```
+# returns the authenticated user
+# requires Authorization: Bearer <token>
+GET /user                        
+
+# returns the authenticated user
+# requires Authorization: Bearer <token>
+GET /user/:id                    
+
+# creates a user; sends a confirmation email
+# requires email and password; all other json properties are stored on the user
+POST /user                        
+
+# confirms a user; not active until confirmation; returns a JWT
+# JWT includes all other json properties stored on the user
+POST /user/confirm                
+
+# authenicates a user with email/password; returns a JWT
+# JWT includes all other json properties stored on the user
+POST /user/login                  
+
+# sends a recovery code via email; expires in 1 hour
+# requires email
+POST /user/forgot-password        
+
+# changes password
+# requires recovery_code and new_password; returns a JWT
+# JWT includes all other json properties stored on the user
+POST /user/recover-password       
+
+# not supported because this would completely replace a user
+# this wouldn't be ideal. instead, use a PATCH request
+PUT /user/:id                    
+
+# updates a user
+# any properties on user are replaced
+# requires Authorization: Bearer <token>
+PATCH /user/id                     
+
+# deletes the user
+# requires Authorization: Bearer <token>
+DELETE /user/:id
+```
+
+__Authorization__
+
+Access control is handled by supplying a custom middleware function that determines if the logged in user
+has the ability to perform the specific action.
+
+The `req` parameter will contain `resource`, `method`, and `wrestler.user` values which help in determining access. 
+
+__Example__
+
+```js
+app.use(wrestler({
+  users: { // enables user support
+    authorization: (req, res, next) => {
+      if (req.resource === 'widget') {
+        if (req.wrestler.user && req.wrestler.user.email === 'tom@mailinator.com') return next();
+        return res.sendStatus(403);
+      }
+      next();
+    }
+  }
+}));
+```
+
+__Simple Authorization__
+
+Set `users.authorization` equal to `simple` if you just need to make sure that users can only manage their own stuff.
+
+```js
+app.use(wrestler({
+  users: { // enables user support
+    authorization: 'simple' // users can only CRUD their own data
+  }
+}));
+```
+
+
 ## Run Tests
 
 ```bash

@@ -14,7 +14,7 @@ describe('rest_handlers', () => {
     app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(wrestler({ handleUsers: false }));
+    app.use(wrestler({ users: false }));
     app.wrestler = { db: testDb };
   });
 
@@ -80,40 +80,6 @@ describe('rest_handlers', () => {
       await request(app).delete(`/widget/${widget1.id}`).expect(204);
       await request(app).get(`/widget/${widget1.id}`).expect(404);
     });
-  });
-
-  describe('when user handling is enabled', () => {
-    let app;
-    let tom, tomToken, jerry, jerryToken;
-
-    before(() => {
-      app = express();
-      app.use(express.json());
-      app.use(express.urlencoded({ extended: false }));
-      app.use(wrestler({ handleUsers: true }));
-      app.wrestler = { db: testDb };
-    });
-
-    beforeEach(async () => {
-      await testDb.dropCollections('user', 'widget');
-      tom = (await request(app).post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1', age: 40 }).expect(201)).body;
-      jerry = (await request(app).post('/user').send({ email: 'jerry@mailinator.com', password: 'welcome@1', age: 41 }).expect(201)).body;
-      tomToken = (await request(app).post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200)).body.token;
-      jerryToken = (await request(app).post('/user/login').send({ email: 'jerry@mailinator.com', password: 'welcome@1' }).expect(200)).body.token;
-      await request(app).post('/widget').set('Authorization', `Bearer ${tomToken}`).send({ name: 'tom\'s widget' }).expect(201);
-      await request(app).post('/widget').set('Authorization', `Bearer ${jerryToken}`).send({ name: 'jerry\'s widget' }).expect(201);
-    });
-
-    it('automatically filters data to the authenticated user', async () => {
-      const tomWidgets = (await request(app).get('/widget').set('Authorization', `Bearer ${tomToken}`).expect(200)).body;
-      assert.equal(tomWidgets.length, 1);
-      assert.equal(tomWidgets[0].name, 'tom\'s widget');
-
-      const jerryWidgets = (await request(app).get('/widget').set('Authorization', `Bearer ${jerryToken}`).expect(200)).body;
-      assert.equal(jerryWidgets.length, 1);
-      assert.equal(jerryWidgets[0].name, 'jerry\'s widget');
-    });
-
   });
 
 });

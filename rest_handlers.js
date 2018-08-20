@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 exports.handleRestRequest = async (req, res, next) => {
   try {
     await handleRestfulGetRequest(req, res);
@@ -19,7 +21,7 @@ const handleRestfulGetRequest = async (req, res) => {
       const limit = limitFromQuery(req);
       const skip = skipFromQuery(req);
       const filter = appendUserScope(req, req.query);
-      const docs = await req.db.find(req.resource, filter, { projection }, {sort, limit: limit + 1, skip});
+      const docs = await req.db.find(req.resource, filter, { projection }, { sort, limit: limit + 1, skip });
       const results = res.wrestler.transformer ? res.wrestler.transformer(docs) : transformManyId(docs);
       const links = linksFromResult(req, req.resource, results, projectionQuery, sortQuery, limit, skip);
       if (results.length < limit) {
@@ -93,12 +95,13 @@ const handleRestfulDeleteRequest = async (req, res) => {
 };
 
 const appendUserScope = (req, filter) => {
-  if (req.wrestler && req.wrestler.user && req.wrestler.user.id) {
+  if (_.get(req, 'wrestler.options.users.authorization') === 'simple') {
+    const userId = _.get(req, 'wrestler.user.id', 'nobody');
     if (req.resource === 'user') {
       // TODO: if req.wrestler.user.id !== req.id, then throw error i think
-      return Object.assign({}, filter, { _id: req.db.toObjectId(req.wrestler.user.id) });
+      return Object.assign({}, filter, { _id: req.db.toObjectId(userId) });
     }
-    return Object.assign({}, filter, { userId: req.wrestler.user.id });
+    return Object.assign({}, filter, { userId });
   }
   return filter;
 };
