@@ -169,56 +169,8 @@ describe('Handling user requests', () => {
       await request.put(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
     });
 
-    context('successfully replaces user details', () => {
-
-      let resp;
-
-      beforeEach(async () => {
-        resp = await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(200);
-      });
-
-      it('returns the id', async () => {
-        assert.exists(resp.body.id);
-      });
-
-      it('returns the new email', async () => {
-        assert.equal(resp.body.email, 'tom40@mailinator.com');
-      });
-
-      it('excludes the password', async () => {
-        assert.notExists(resp.body.password);
-      });
-
-      it('returns other new properties', async () => {
-        assert.equal(resp.body.age, 41);
-      });
-
-      it('returns the new created and updated times', async () => {
-        assert.exists(resp.body.createdAt);
-        assert.exists(resp.body.updatedAt);
-        assert.notEqual(resp.body.createdAt, tom.createdAt);
-        assert.notEqual(resp.body.updatedAt, tom.updatedAt);
-      });
-
-      it('sets the same created and updated times because this is a replacement', async () => {
-        assert.equal(resp.body.createdAt, resp.body.updatedAt);
-      });
-
-    });
-
-    it('returns an error is the user email already exists', async () => {
-      const resp = await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
-    });
-
-    it('returns an error if no email is supplied', async () => {
-      const resp = await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ emale: 'bob@mailinator.com', password: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
-    });
-
-    it('returns an error if no password is supplied', async () => {
-      const resp = await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'bob@mailinator.com', passsword: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
+    it('fails period', async () => {
+      await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(405);
     });
 
   });
@@ -240,6 +192,24 @@ describe('Handling user requests', () => {
     it('returns an error if the email already exists');
 
     it('returns an error if the database fails when detecting email uniqueness');
+
+    context('successfully changes the password', () => {
+
+      let resp;
+
+      beforeEach(async () => {
+        resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ password: 'welcome@3' }).expect(200);
+      });
+
+      it('returns an error with the old password', async () => {
+        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(401);
+      });
+
+      it('logins with the new password', async () => {
+        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@3' }).expect(200);
+      });
+
+    });
 
     context('successfully updates users details', () => {
 

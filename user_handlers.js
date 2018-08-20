@@ -101,31 +101,27 @@ exports.handleUserPostRequest = async (req, res, next) => {
 
 exports.handleUserPutRequest = async (req, res, next) => {
   if (userHandlingIsEnabled(req) && req.method === 'PUT') {
-    const { email, password } = req.body;
-    req.body = sanitizeBody(req);
-
-    const errors = await validateUpsert(req, email, password);
-    if (errors) {
-      res.wrestler.errors = errors;
-      return next(new ReplaceUserError());
-    }
-
-    // TODO: send email
-
-    res.wrestler.transformer = transformOne;
+    return res.sendStatus(405);
   }
   next();
 };
 
 exports.handleUserPatchRequest = async (req, res, next) => {
   if (userHandlingIsEnabled(req) && req.method === 'PATCH') {
-    const { email } = req.body;
+    const { email, password } = req.body;
     req.body = sanitizeBody(req);
 
     const errors = await validatePatch(req, email);
     if (errors) {
       res.wrestler.errors = errors;
       return next(new UpdateUserError());
+    }
+
+    if (password) {
+      const salt = crypto.randomBytes(128).toString('base64');
+      const derivedKey = await pbkdf2(password, salt, ITERATIONS, KEYLEN, DIGEST);
+      const passwordHash = derivedKey.toString('hex');
+      req.body = Object.assign({}, req.body, { salt, iterations: ITERATIONS, keylen: KEYLEN, digest: DIGEST, passwordHash });
     }
 
     // TODO: send email (if email or password is changed)
