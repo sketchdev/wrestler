@@ -44,6 +44,9 @@ const handleRestfulGetRequest = async (req, res) => {
 
 const handleRestfulPostRequest = async (req, res) => {
   if (req.method === 'POST') {
+    if (req.id) {
+      return res.sendStatus(400);
+    }
     delete req.body.id;
     const now = new Date();
     const doc = appendUserId(req, Object.assign(req.body, { createdAt: now, updatedAt: now }));

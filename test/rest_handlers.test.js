@@ -25,6 +25,7 @@ describe('rest_handlers', () => {
   });
 
   describe('POST', () => {
+
     it('creates a new widget', async () => {
       const res = await request(app).post('/widget')
         .send({ name: 'Jobin', company: 'acme' })
@@ -37,6 +38,11 @@ describe('rest_handlers', () => {
       expect(props).to.deep.equal({ name: 'Jobin', company: 'acme' });
       expect(res.get('Location')).to.equal(`/widget/${id}`);
     });
+
+    it('returns a bad request if anything exists after the resource on the path', async () => {
+      await request(app).post('/user/login').send({ name: 'Jobin', company: 'acme' }).expect(400);
+    });
+
   });
 
   describe('GET', () => {
