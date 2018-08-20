@@ -22,8 +22,8 @@ exports.checkAuthentication = async (req, res, next) => {
     if (req.headers.authorization) {
       const [scheme, token] = req.headers.authorization.split(' ');
       if (scheme === 'Bearer') {
-        const decoded = await jwtVerify(token, JWT_SECRET_KEY, { algorithm: 'HS512' });
-        req.wrestler.user = transformOne(decoded.user);
+        const user = await jwtVerify(token, JWT_SECRET_KEY, { algorithm: 'HS512' });
+        req.wrestler.user = transformOne(user);
         return next();
       }
     }
@@ -51,7 +51,7 @@ exports.handleLogin = async (req, res, next) => {
       return next(new LoginError());
     }
     try {
-      const token = await jwtSign({ user }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
+      const token = await jwtSign(transformOne(user), JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
       return res.json({ token });
     } catch (err) {
       console.error(err);
@@ -207,14 +207,17 @@ const transformMany = (entities) => {
 };
 
 const transformOne = (doc) => {
-  doc.id = doc._id;
-  delete doc._id;
-  delete doc.salt;
-  delete doc.iterations;
-  delete doc.keylen;
-  delete doc.digest;
-  delete doc.passwordHash;
-  delete doc.confirmationCode;
-  delete doc.confirmed;
-  return doc;
+  const user = Object.assign({}, doc);
+  if (user._id) {
+    user.id = user._id;
+  }
+  delete user._id;
+  delete user.salt;
+  delete user.iterations;
+  delete user.keylen;
+  delete user.digest;
+  delete user.passwordHash;
+  delete user.confirmationCode;
+  delete user.confirmed;
+  return user;
 };
