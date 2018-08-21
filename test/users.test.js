@@ -10,7 +10,7 @@ const uuid = require('uuid/v4');
 
 describe('Handling user requests', () => {
 
-  let app, request, transport, transporter, tom;
+  let app, request, transport, transporter, tom, sam;
 
   before(() => {
     app = express();
@@ -26,6 +26,7 @@ describe('Handling user requests', () => {
   beforeEach(async () => {
     await testDb.dropCollections('user');
     tom = (await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1', age: 40 }).expect(201)).body;
+    sam = (await request.post('/user').send({ email: 'sam@mailinator.com', password: 'welcome@1', age: 20 }).expect(201)).body;
   });
 
   afterEach(async () => {
@@ -92,9 +93,15 @@ describe('Handling user requests', () => {
         assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
       });
 
-      it('returns an error if the email is invalid');
+      it('returns an error if the email is invalid', async () => {
+        const resp = await request.post('/user').send({ email: 'bob@mailinator', password: 'welcome@1' }).expect(400);
+        assert.deepEqual(resp.body, { email: { messages: ['Email is invalid'] } });
+      });
 
-      it('returns an error if the database fails when detecting email uniqueness');
+      it('returns an error if the database fails when detecting email uniqueness', async () => {
+        const resp = await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(400);
+        assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
+      });
 
     });
 
@@ -158,16 +165,15 @@ describe('Handling user requests', () => {
 
     context('failure', () => {
 
-      it('rejects authentication attempts that are not in bearer form');
-
-      it('returns an error if the email is not found');
+      it('returns an error if the email is not found', async () => {
+        const resp = await request.post('/user/login').send({ email: 'thomas@mailinator.com', password: 'welcome@2' }).expect(401);
+        assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
+      });
 
       it('returns an error if credentials are incorrect', async () => {
         const resp = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@2' }).expect(401);
         assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
       });
-
-      it('returns an error if creating the jwt fails');
 
     });
 
@@ -252,14 +258,20 @@ describe('Handling user requests', () => {
 
       it('returns an error with the old password if changed', async () => {
         await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ password: 'welcome@3' }).expect(200);
-        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(401);
+        const resp = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(401);
+        assert.deepEqual(resp.body.base.messages, ['Invalid email or password']);
       });
 
-      it('returns an error if the email is invalid');
+      it('returns an error if the email is invalid', async () => {
+        const resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'welcome@3' }).expect(400);
+        assert.deepEqual(resp.body.email.messages, ['Email is invalid']);
+      });
 
-      it('returns an error if the email already exists');
-
-      it('returns an error if the database fails when detecting email uniqueness');
+      it('returns an error if the email already exists', async () => {
+        const resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom@mailinator.com' });
+        assert.equal(resp.statusCode, 400);
+        assert.deepEqual(resp.body.email.messages, ['Email already exists']);
+      });
 
     });
 
@@ -267,14 +279,92 @@ describe('Handling user requests', () => {
 
   describe('GET /user', () => {
 
-    it('successfully returns the user from the token');
+    let login;
+
+    beforeEach(async () => {
+      login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
+    });
+
+    context('success', () => {
+
+      let resp;
+
+      beforeEach(async () => {
+        resp = await request.get('/user').set('Authorization', `Bearer ${login.body.token}`);
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('returns the user in an array', async () => {
+        assert.exists(resp.body.length, 1);
+        assert.equal(resp.body[0].email, 'tom@mailinator.com');
+        assert.notExists(resp.body[0].password);
+        assert.notExists(resp.body[0].confirmationCode);
+        assert.notExists(resp.body[0].confirmed);
+        assert.exists(resp.body[0].createdAt);
+        assert.exists(resp.body[0].updatedAt);
+        assert.exists(resp.body[0].id);
+      });
+
+    });
+
+    context('failure', () => {
+
+      it('rejects authentication attempts that are not in bearer form', async () => {
+        await request.get('/user').set('Authorization', `Basic ${login.body.token}`).expect(401);
+      });
+
+    });
 
   });
 
   describe('GET /user/:id', () => {
 
-    it('successfully returns the user from the token');
-    it('returns an error if the id does not match the token');
+    let login;
+
+    beforeEach(async () => {
+      login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
+    });
+
+    context('success', () => {
+
+      let resp;
+
+      beforeEach(async () => {
+        resp = await request.get(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`);
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('returns the user', async () => {
+        assert.equal(resp.body.email, 'tom@mailinator.com');
+        assert.notExists(resp.body.password);
+        assert.notExists(resp.body.confirmationCode);
+        assert.notExists(resp.body.confirmed);
+        assert.exists(resp.body.createdAt);
+        assert.exists(resp.body.updatedAt);
+        assert.exists(resp.body.id);
+      });
+
+    });
+
+    context('failure', () => {
+
+      it('returns a not found if the user does not exist', async () => {
+        const resp = await request.get('/user/4').set('Authorization', `Bearer ${login.body.token}`);
+        assert.equal(resp.statusCode, 404);
+      });
+
+      it('returns an error if get user is not the person logged in', async () => {
+        const resp = await request.get(`/user/${sam.id}`).set('Authorization', `Bearer ${login.body.token}`);
+        assert.equal(resp.statusCode, 404);
+      });
+
+    });
 
   });
 

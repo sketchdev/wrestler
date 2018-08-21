@@ -96,40 +96,273 @@ describe('Handling restful reuests', () => {
 
   });
 
-  describe('GET /widget', () => {
+  describe('GET', () => {
 
-    context('success', () => {
+    let coconut, apple, banana, egg, fig;
 
-      let resp, coconut, apple, banana;
+    beforeEach(async () => {
+      await testDb.dropCollections('widget');
+      coconut = (await request.post('/widget').send({ name: 'coconut', company: 'acme' }).expect(201)).body;
+      apple = (await request.post('/widget').send({ name: 'apple', company: 'momo' }).expect(201)).body;
+      banana = (await request.post('/widget').send({ name: 'banana', company: 'momo' }).expect(201)).body;
+      egg = (await request.post('/widget').send({ name: 'egg', company: 'coco' }).expect(201)).body;
+      fig = (await request.post('/widget').send({ name: 'fig', company: 'nono' }).expect(201)).body;
+    });
 
-      beforeEach(async () => {
-        await testDb.dropCollections('widget');
-        coconut = (await request.post('/widget').send({ name: 'coconut', company: 'acme' }).expect(201)).body;
-        apple = (await request.post('/widget').send({ name: 'apple', company: 'acme' }).expect(201)).body;
-        banana = (await request.post('/widget').send({ name: 'banana', company: 'acme' }).expect(201)).body;
-        resp = await request.get('/widget');
+    describe('/widget', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.deepEqual(resp.body.find(e => e.name === 'coconut'), coconut);
+          assert.deepEqual(resp.body.find(e => e.name === 'apple'), apple);
+          assert.deepEqual(resp.body.find(e => e.name === 'banana'), banana);
+          assert.deepEqual(resp.body.find(e => e.name === 'egg'), egg);
+          assert.deepEqual(resp.body.find(e => e.name === 'fig'), fig);
+        });
+
       });
 
-      it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+    });
+
+    describe('/widget?limit=2', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?limit=2');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 2);
+          assert.deepEqual(resp.body.find(e => e.name === 'coconut'), coconut);
+          assert.deepEqual(resp.body.find(e => e.name === 'apple'), apple);
+        });
+
+        it('returns links headers', async () => {
+          assert.notExists(resp.links.prev);
+          assert.match(resp.links.next, /widget\?limit=2&skip=2/);
+        });
+
       });
 
-      it('returns the array of entities', async () => {
-        assert.deepEqual(resp.body.find(e => e.name === 'coconut'), coconut);
-        assert.deepEqual(resp.body.find(e => e.name === 'apple'), apple);
-        assert.deepEqual(resp.body.find(e => e.name === 'banana'), banana);
+    });
+
+    describe('/widget?limit=2&skip=2', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?limit=2&skip=2');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 2);
+          assert.deepEqual(resp.body.find(e => e.name === 'banana'), banana);
+        });
+
+        it('returns links headers', async () => {
+          assert.match(resp.links.next, /widget\?limit=2&skip=4/);
+          assert.match(resp.links.prev, /widget\?limit=2&skip=0/);
+        });
+
+      });
+
+    });
+
+    describe('/widget?limit=2&skip=4', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?limit=2&skip=4');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 1);
+          assert.deepEqual(resp.body.find(e => e.name === 'fig'), fig);
+        });
+
+        it('returns links headers', async () => {
+          assert.notExists(resp.links.next);
+          assert.match(resp.links.prev, /widget\?limit=2&skip=2/);
+        });
+
+      });
+
+    });
+
+    describe('/widget?sort=-name', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?sort=-name');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 5);
+          assert.deepEqual(resp.body[0], fig);
+        });
+
+      });
+
+    });
+
+    describe('/widget?sort=name', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?sort=name');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 5);
+          assert.deepEqual(resp.body[0], apple);
+        });
+
+      });
+
+    });
+
+    describe('/widget?sort=-company,name', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?sort=-company,name');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 5);
+          assert.deepEqual(resp.body[0], fig);
+          assert.deepEqual(resp.body[1], apple);
+        });
+
+      });
+
+    });
+
+    describe('/widget?company=momo', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?company=momo');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 2);
+          assert.deepEqual(resp.body[0], apple);
+          assert.deepEqual(resp.body[1], banana);
+        });
+
+      });
+
+    });
+
+    describe('/widget?company=momo&name=banana', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?company=momo&name=banana');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 1);
+          assert.deepEqual(resp.body[0], banana);
+        });
+
+      });
+
+    });
+
+    describe('/widget?fields=name', () => {
+
+      context('success', () => {
+
+        let resp;
+
+        beforeEach(async () => {
+          resp = await request.get('/widget?fields=name');
+        });
+
+        it('returns the correct status code', async () => {
+          assert.equal(resp.statusCode, 200);
+        });
+
+        it('returns the array of entities', async () => {
+          assert.equal(resp.body.length, 5);
+          assert.lengthOf(Object.keys(resp.body[0]), 2);
+          assert.equal(resp.body[0].name, coconut.name);
+          assert.exists(resp.body[0].id);
+        });
+
       });
 
     });
 
   });
-
-  it('GET /widget?sort=-name');
-  it('GET /widget?sort=name,-company');
-  it('GET /widget?name=coconut');
-  it('GET /widget?limit=2');
-  it('GET /widget?limit=2&skip=2');
-  it('GET /widget?fields=name');
 
   describe('PUT /widget/:id', () => {
 
@@ -168,6 +401,18 @@ describe('Handling restful reuests', () => {
 
   });
 
+  describe('PUT /widget', () => {
+
+    context('failure', () => {
+
+      it('returns an error code if missing the id', async () => {
+        await request.put('/widget').send({ name: 'coconuts' }).expect(400);
+      });
+
+    });
+
+  });
+
   describe('PATCH /widget/:id', () => {
 
     context('success', () => {
@@ -199,6 +444,18 @@ describe('Handling restful reuests', () => {
 
       it('changes the updated time', async () => {
         assert.notEqual(resp.body.updatedAt, coconut.updatedAt);
+      });
+
+    });
+
+  });
+
+  describe('PATCH /widget', () => {
+
+    context('failure', () => {
+
+      it('returns an error code if missing the id', async () => {
+        await request.patch('/widget').send({ name: 'coconuts' }).expect(400);
       });
 
     });
