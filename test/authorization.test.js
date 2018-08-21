@@ -7,7 +7,7 @@ const uuid = require('uuid/v4');
 const wrestler = require('../wrestler');
 const { assert } = require('chai');
 
-describe('authorization', () => {
+describe('Handling authorization', () => {
 
   describe('using a function for authorization', () => {
 
@@ -38,16 +38,24 @@ describe('authorization', () => {
       await testDb.dropCollections('user');
     });
 
-    it('passes the authorization function', async () => {
-      (await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(201));
-      const login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
-      (await request.post('/widget').set('Authorization', `Bearer ${login.body.token}`).send({ name: 'gear', company: 'acme' }).expect(201));
+    context('success', () => {
+
+      it('passes the authorization function', async () => {
+        (await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(201));
+        const login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
+        (await request.post('/widget').set('Authorization', `Bearer ${login.body.token}`).send({ name: 'gear', company: 'acme' }).expect(201));
+      });
+
     });
 
-    it('fails the authorization function', async () => {
-      (await request.post('/user').send({ email: 'tom2@mailinator.com', password: 'welcome@1' }).expect(201));
-      const login = await request.post('/user/login').send({ email: 'tom2@mailinator.com', password: 'welcome@1' }).expect(200);
-      (await request.post('/widget').set('Authorization', `Bearer ${login.body.token}`).send({ name: 'gear', company: 'acme' }).expect(403));
+    context('failure', () => {
+
+      it('fails the authorization function', async () => {
+        (await request.post('/user').send({ email: 'tom2@mailinator.com', password: 'welcome@1' }).expect(201));
+        const login = await request.post('/user/login').send({ email: 'tom2@mailinator.com', password: 'welcome@1' }).expect(200);
+        (await request.post('/widget').set('Authorization', `Bearer ${login.body.token}`).send({ name: 'gear', company: 'acme' }).expect(403));
+      });
+
     });
 
   });
@@ -77,14 +85,18 @@ describe('authorization', () => {
       await request.post('/widget').set('Authorization', `Bearer ${jerryToken}`).send({ name: 'jerry\'s widget' }).expect(201);
     });
 
-    it('automatically filters data to the authenticated user', async () => {
-      const tomWidgets = (await request.get('/widget').set('Authorization', `Bearer ${tomToken}`).expect(200)).body;
-      assert.equal(tomWidgets.length, 1);
-      assert.equal(tomWidgets[0].name, 'tom\'s widget');
+    context('success', () => {
 
-      const jerryWidgets = (await request.get('/widget').set('Authorization', `Bearer ${jerryToken}`).expect(200)).body;
-      assert.equal(jerryWidgets.length, 1);
-      assert.equal(jerryWidgets[0].name, 'jerry\'s widget');
+      it('automatically filters data to the authenticated user', async () => {
+        const tomWidgets = (await request.get('/widget').set('Authorization', `Bearer ${tomToken}`).expect(200)).body;
+        assert.equal(tomWidgets.length, 1);
+        assert.equal(tomWidgets[0].name, 'tom\'s widget');
+
+        const jerryWidgets = (await request.get('/widget').set('Authorization', `Bearer ${jerryToken}`).expect(200)).body;
+        assert.equal(jerryWidgets.length, 1);
+        assert.equal(jerryWidgets[0].name, 'jerry\'s widget');
+      });
+
     });
 
   });

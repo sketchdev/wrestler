@@ -10,7 +10,7 @@ const jwtSign = util.promisify(jwt.sign);
 const jwtVerify = util.promisify(jwt.verify);
 const pbkdf2 = util.promisify(crypto.pbkdf2);
 const _ = require('lodash');
-const { LoginError, CreateUserError, ReplaceUserError, UpdateUserError } = require('./errors');
+const { LoginError, CreateUserError, UpdateUserError } = require('./lib/errors');
 
 const ITERATIONS = 10000;
 const KEYLEN = 64;

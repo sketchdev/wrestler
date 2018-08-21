@@ -16,7 +16,7 @@ describe('Handling user requests', () => {
     app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(wrestler({ users: true, email: { register: { subject: 'Welcome!' }} }));
+    app.use(wrestler({ users: true, email: { register: { subject: 'Welcome!' } } }));
     request = supertest(app);
     transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     transporter = nodemailer.createTransport(transport);
@@ -40,7 +40,7 @@ describe('Handling user requests', () => {
 
   describe('POST /user', () => {
 
-    context('successfully creates a new user', () => {
+    context('success', () => {
 
       let resp;
 
@@ -75,32 +75,34 @@ describe('Handling user requests', () => {
 
     });
 
-    it('returns an error if the user email already exists', async () => {
-      const resp = await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
+    context('failure', () => {
+
+      it('returns an error if the user email already exists', async () => {
+        const resp = await request.post('/user').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(400);
+        assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
+      });
+
+      it('returns an error if no email is supplied', async () => {
+        const resp = await request.post('/user').send({ emale: 'bob@mailinator.com', password: 'welcome@1' }).expect(400);
+        assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
+      });
+
+      it('returns an error if no password is supplied', async () => {
+        const resp = await request.post('/user').send({ email: 'bob@mailinator.com', passsword: 'welcome@1' }).expect(400);
+        assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
+      });
+
+      it('returns an error if the email is invalid');
+
+      it('returns an error if the database fails when detecting email uniqueness');
+
     });
-
-    it('returns an error if no email is supplied', async () => {
-      const resp = await request.post('/user').send({ emale: 'bob@mailinator.com', password: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
-    });
-
-    it('returns an error if no password is supplied', async () => {
-      const resp = await request.post('/user').send({ email: 'bob@mailinator.com', passsword: 'welcome@1' }).expect(400);
-      assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
-    });
-
-    it('returns an error if the email is invalid');
-
-    it('returns an error if the database fails when detecting email uniqueness');
 
   });
 
   describe('POST /user/forgot-password', () => {
 
-    it('returns an error if no email is supplied');
-
-    context('successfully initiates a password recovery', () => {
+    context('success', () => {
 
       it('returns the correct status code');
       it('always returns a success status code even if the user email does not exist');
@@ -108,17 +110,27 @@ describe('Handling user requests', () => {
 
     });
 
+    context('failure', () => {
+
+      it('returns an error if no email is supplied');
+
+    });
+
   });
 
   describe('POST /user/recover-password', () => {
 
-    it('returns an error if the recovery token does not exist');
-    it('returns an error if the recovery token is past expiration');
-
-    context('successfully recovers the user password', () => {
+    context('success', () => {
 
       it('returns the correct status code');
       it('authenticates with the new password');
+
+    });
+
+    context('failure', () => {
+
+      it('returns an error if the recovery token does not exist');
+      it('returns an error if the recovery token is past expiration');
 
     });
 
@@ -126,7 +138,7 @@ describe('Handling user requests', () => {
 
   describe('POST /user/login', () => {
 
-    context('authenticates a user', () => {
+    context('success', () => {
 
       let resp;
 
@@ -144,33 +156,42 @@ describe('Handling user requests', () => {
 
     });
 
-    it('rejects authentication attempts that are not in bearer form');
+    context('failure', () => {
 
-    it('returns an error if the email is not found');
+      it('rejects authentication attempts that are not in bearer form');
 
-    it('returns an error if credentials are incorrect', async () => {
-      const resp = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@2' }).expect(401);
-      assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
+      it('returns an error if the email is not found');
+
+      it('returns an error if credentials are incorrect', async () => {
+        const resp = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@2' }).expect(401);
+        assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
+      });
+
+      it('returns an error if creating the jwt fails');
+
     });
 
-    it('returns an error if creating the jwt fails');
 
   });
 
   describe('PUT /user/:id', () => {
 
-    let login;
+    context('failure', () => {
 
-    beforeEach(async () => {
-      login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
-    });
+      let login;
 
-    it('fails if not authenticated', async () => {
-      await request.put(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
-    });
+      beforeEach(async () => {
+        login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
+      });
 
-    it('fails period', async () => {
-      await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(405);
+      it('fails if not authenticated', async () => {
+        await request.put(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
+      });
+
+      it('fails period', async () => {
+        await request.put(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(405);
+      });
+
     });
 
   });
@@ -183,40 +204,12 @@ describe('Handling user requests', () => {
       login = await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(200);
     });
 
-    it('fails if not authenticated', async () => {
-      await request.patch(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
-    });
-
-    it('returns an error if the email is invalid');
-
-    it('returns an error if the email already exists');
-
-    it('returns an error if the database fails when detecting email uniqueness');
-
-    context('successfully changes the password', () => {
+    context('success', () => {
 
       let resp;
 
       beforeEach(async () => {
-        resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ password: 'welcome@3' }).expect(200);
-      });
-
-      it('returns an error with the old password', async () => {
-        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(401);
-      });
-
-      it('logins with the new password', async () => {
-        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@3' }).expect(200);
-      });
-
-    });
-
-    context('successfully updates users details', () => {
-
-      let resp;
-
-      beforeEach(async () => {
-        resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ age: 41 }).expect(200);
+        resp = await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ password: 'welcome@3', age: 41 }).expect(200);
       });
 
       it('returns the id', async () => {
@@ -244,6 +237,29 @@ describe('Handling user requests', () => {
       it('keeps the same created time', async () => {
         assert.equal(resp.body.createdAt, tom.createdAt);
       });
+
+      it('logins with the new password', async () => {
+        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@3' }).expect(200);
+      });
+
+    });
+
+    context('failure', () => {
+
+      it('fails if not authenticated', async () => {
+        await request.patch(`/user/${tom.id}`).send({ email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 }).expect(401);
+      });
+
+      it('returns an error with the old password if changed', async () => {
+        await request.patch(`/user/${tom.id}`).set('Authorization', `Bearer ${login.body.token}`).send({ password: 'welcome@3' }).expect(200);
+        await request.post('/user/login').send({ email: 'tom@mailinator.com', password: 'welcome@1' }).expect(401);
+      });
+
+      it('returns an error if the email is invalid');
+
+      it('returns an error if the email already exists');
+
+      it('returns an error if the database fails when detecting email uniqueness');
 
     });
 
