@@ -2,7 +2,7 @@
 /** @namespace req.wrestler.options.dbDriver */
 
 const { WhitelistError, ValidationError, LoginError } = require('./lib/errors');
-const { handleRestRequest } = require('./lib/restful');
+const { handleRestfulPostRequest, handleRestfulGetRequest, handleRestfulPutRequest, handleRestfulPatchRequest, handleRestfulDeleteRequest } = require('./lib/restful');
 const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
@@ -91,7 +91,11 @@ module.exports = (options) => {
     handleUserPutRequest,
     handleUserPatchRequest,
     handleUserDeleteRequest,
-    handleRestRequest,
+    handleRestfulPostRequest,
+    handleRestfulGetRequest,
+    handleRestfulPutRequest,
+    handleRestfulPatchRequest,
+    handleRestfulDeleteRequest,
     handleEmail,
     transformErrors
   ];
