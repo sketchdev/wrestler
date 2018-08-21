@@ -2,11 +2,11 @@
 /** @namespace req.wrestler.options.dbDriver */
 
 const { WhitelistError, ValidationError, LoginError } = require('./lib/errors');
-const { handleRestRequest } = require('./lib/rest_handlers');
-const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/user_handlers');
+const { handleRestRequest } = require('./lib/restful');
+const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
-const dbUtil = require('./db/db_util');
+const dbUtil = require('./lib/db_util');
 
 let db;
 
