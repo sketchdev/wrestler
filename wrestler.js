@@ -6,7 +6,7 @@ const { handleRestRequest } = require('./lib/restful');
 const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
-const dbUtil = require('./lib/db_util');
+const dbUtil = require('./lib/db');
 
 let db;
 
