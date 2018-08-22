@@ -5,7 +5,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/8195382474536e36f321/maintainability)](https://codeclimate.com/github/sketchdev/wrestler/maintainability)
 [![Coverage Status](https://coveralls.io/repos/github/sketchdev/wrestler/badge.svg?branch=master)](https://coveralls.io/github/sketchdev/wrestler?branch=master)
 ![Gitter](https://img.shields.io/gitter/room/wrestlerjs/wrestler.js.svg)
-[![Version npm](https://img.shields.io/npm/v/wrestler.svg?style=flat-square)](https://www.npmjs.com/package/winston)
+[![Version npm](https://img.shields.io/npm/v/wrestler.svg?style=flat-square)](https://www.npmjs.com/package/wrestler)
 [![npm Downloads](https://img.shields.io/npm/dm/wrestler.svg?style=flat-square)](https://npmcharts.com/compare/wrestler?minimal=true)
 
 <img src="logo.svg" height="200px" alt="Wrestler" align="right"/>
