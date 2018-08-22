@@ -16,41 +16,13 @@ Keep focusing on your React, Angular, or Vue front-end while the backend API com
 ## Features
 
 * Dynamic RESTful API
+* Easy integration with existing solutions.
+* Middleware library for [Express.js](https://expressjs.com/) instead of it's own web framework.
 * Whitelist and validate resources to prevent garbage data.
 * User management with authentication, authorization, recovery, and more.
 * Email delivery for new user sign ups, password recovery, etc.
 * Consistent error responses.
-* Use as a CLI tool or as a middlware library for [Express.js](https://expressjs.com/).
-* Middleware pattern allows inserting your own handlers for situations that REST doesn't support.
-
-## Table of Contents
-
-- [Command Line Usage](#command-line-usage)
-- [Middleware Usage](#middleware-usage)
-
-## Command Line Usage
-
-Install the library globally using `yarn`.
-
-```sh
-yarn global add wrestler
-```
-
-Or, install using `npm`
-
-```sh
-npm i wrestler -g
-```
-
-Run the binary and then start making RESTful requests.
-
-```sh
-wrestler
-```
-
-```sh
-curl http://localhost:3000/blogs
-```
+* Allows inserting your own handlers for situations that REST doesn't support.
 
 
 ## Middleware Usage
