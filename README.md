@@ -26,7 +26,7 @@ Keep focusing on your React, Angular, or Vue front-end while the backend API com
 ## Table of Contents
 
 - [Command Line Usage](#command-line-usage)
-- [Middleware Usage](#middlware-usage)
+- [Middleware Usage](#middleware-usage)
 
 ## Command Line Usage
 
