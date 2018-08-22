@@ -1,6 +1,6 @@
 {
   "name": "wrestler",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "An express middleware which provides a solid foundation for a RESTful API.",
   "keywords": [
     "restful",
@@ -32,12 +32,12 @@
     "validator": "^10.5.0"
   },
   "devDependencies": {
-    "dotenv": "^6.0.0",
     "chai": "^4.1.2",
     "coveralls": "3.0.2",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
     "mocha": "^5.2.0",
     "morgan": "^1.9.0",
-    "express": "^4.16.3",
     "nyc": "12.0.2",
     "sinon": "6.1.5",
     "supertest": "^3.1.0"
