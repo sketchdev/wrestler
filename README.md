@@ -8,7 +8,7 @@
 [![Version npm](https://img.shields.io/npm/v/wrestler.svg?style=flat-square)](https://www.npmjs.com/package/wrestler)
 [![npm Downloads](https://img.shields.io/npm/dm/wrestler.svg?style=flat-square)](https://npmcharts.com/compare/wrestler?minimal=true)
 
-<img src="https://raw.githubusercontent.com/sketchdev/wrestler/master/logo.svg" height="200px" alt="Wrestler" align="right"/>
+<img src="https://raw.githubusercontent.com/sketchdev/wrestler/master/logo.png" height="200px" alt="Wrestler" align="right"/>
 
 Wrestler jumpstarts your productivity by removing the need to build a backend API for your application.
 Keep focusing on your React, Angular, or Vue front-end while the backend API comes for free!
