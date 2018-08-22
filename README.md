@@ -1,17 +1,28 @@
-# Wrestler
+<p align="center">
+  <img src="logo.svg" height="100px" alt="Wrestler"/>
+</p>
 
-Restful scaffolding that grows with you!
+<p align="center"> 
 
-[![Build Status](https://img.shields.io/travis/sketchdev/wrestler/master.svg?style=flat-square)](https://travis-ci.org/sketchdev/wrestler)
-[![Dependencies](https://img.shields.io/david/sketchdev/wrestler.svg?style=flat-square)](https://david-dm.org/sketchdev/wrestler)
-[![Coverage Status](https://coveralls.io/repos/github/sketchdev/wrestler/badge.svg?branch=master)](https://coveralls.io/github/sketchdev/wrestler?branch=master)
+  # Wrestler
+  Restful scaffolding that grows with you!
+  
+</p>
 
-![Gitter](https://img.shields.io/gitter/room/wrestlerjs/wrestler.js.svg)
+<p align="center">
 
-[![Version npm](https://img.shields.io/npm/v/wrestler.svg?style=flat-square)](https://www.npmjs.com/package/winston)
-[![npm Downloads](https://img.shields.io/npm/dm/wrestler.svg?style=flat-square)](https://npmcharts.com/compare/wrestler?minimal=true)
+  [![Build Status](https://img.shields.io/travis/sketchdev/wrestler/master.svg?style=flat-square)](https://travis-ci.org/sketchdev/wrestler)
+  [![Dependencies](https://img.shields.io/david/sketchdev/wrestler.svg?style=flat-square)](https://david-dm.org/sketchdev/wrestler)
+  [![Coverage Status](https://coveralls.io/repos/github/sketchdev/wrestler/badge.svg?branch=master)](https://coveralls.io/github/sketchdev/wrestler?branch=master)
+  
+  ![Gitter](https://img.shields.io/gitter/room/wrestlerjs/wrestler.js.svg)
+  
+  [![Version npm](https://img.shields.io/npm/v/wrestler.svg?style=flat-square)](https://www.npmjs.com/package/winston)
+  [![npm Downloads](https://img.shields.io/npm/dm/wrestler.svg?style=flat-square)](https://npmcharts.com/compare/wrestler?minimal=true)
+  
+  [![NPM](https://nodei.co/npm/wrestler.png)](https://nodei.co/npm/wrestler/)
+</p>
 
-[![NPM](https://nodei.co/npm/wrestler.png)](https://nodei.co/npm/wrestler/)
 
 ## Getting Started
 
