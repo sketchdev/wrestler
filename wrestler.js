@@ -55,7 +55,7 @@ const parseRequest = async (req, res, next) => {
   const id = urlSplit.shift();
   req.method = method;
   req.wrestler.resource = resource;
-  req.id = id;
+  req.wrestler.id = id;
   next();
 };
 
