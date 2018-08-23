@@ -10,7 +10,7 @@
   ],
   "main": "wrestler.js",
   "scripts": {
-    "test": "nyc mocha --exit --delay",
+    "test": "nyc mocha --recursive --exit --delay",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "author": "Cody Frederick",

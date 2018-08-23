@@ -6,9 +6,10 @@ const { handleRestfulPostRequest, handleRestfulGetRequest, handleRestfulPutReque
 const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
-const dbUtil = require('./lib/db');
+const _ = require('lodash');
+const db = require('./lib/db');
 
-let db;
+let dbDriver;
 
 const defaultOptions = {
   pageSize: 20,
@@ -31,14 +32,15 @@ const setCors = async (req, res, next) => {
 
 const connectToDatabase = async (req, res, next) => {
   try {
-    if (!db) {
-      if (req.app.wrestler && dbUtil.isValidDriver(req.app.wrestler.db)) {
-        db = req.app.wrestler.db;
+    if (!dbDriver) {
+      const databaseOptions = _.get(req, 'wrestler.options.database');
+      if (databaseOptions.driver && db.isValidDriver(databaseOptions.driver)) {
+        dbDriver = databaseOptions.driver
       } else {
-        db = await dbUtil.connect(req.wrestler.options);
+        dbDriver = await db.connect(databaseOptions);
       }
     }
-    req.db = db;
+    req.db = dbDriver;
     next();
   } catch (err) {
     next(err);
