@@ -10,7 +10,7 @@ describe('authorizing users', () => {
     before(() => {
       tester = new WrestlerTesterBuilder().enableUsers({
         authorization: (req, res, next) => {
-          if (req.resource === 'widget') {
+          if (req.wrestler.resource === 'widget') {
             if (req.wrestler.user && req.wrestler.user.email === 'tom@mailinator.com') return next();
             return res.sendStatus(403);
           }

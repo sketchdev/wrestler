@@ -40,7 +40,7 @@ const connectToDatabase = async (req, res, next) => {
         dbDriver = await db.connect(databaseOptions);
       }
     }
-    req.db = dbDriver;
+    req.wrestler.dbDriver = dbDriver;
     next();
   } catch (err) {
     next(err);
@@ -54,7 +54,7 @@ const parseRequest = async (req, res, next) => {
   const resource = urlSplit.shift().toLowerCase();
   const id = urlSplit.shift();
   req.method = method;
-  req.resource = resource;
+  req.wrestler.resource = resource;
   req.id = id;
   next();
 };

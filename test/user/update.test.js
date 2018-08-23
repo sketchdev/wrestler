@@ -66,7 +66,7 @@ describe('updating users', () => {
     describe('sending bad requests', () => {
 
       it('fails if not authenticated', async () => {
-        const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 })
+        const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 });
         assert.equal(resp.statusCode, 401);
       });
 
