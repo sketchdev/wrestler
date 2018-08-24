@@ -7,7 +7,7 @@ describe('registering users', () => {
   let tester, transporter;
 
   before(() => {
-    tester = new WrestlerTesterBuilder().setEmailRegisterSubject('Welcome!').enableUsers().build();
+    tester = new WrestlerTesterBuilder().setEmailConfirmationSubject('Welcome!').enableUsers().build();
     transporter = tester.getEmailTransporter();
   });
 
@@ -16,11 +16,13 @@ describe('registering users', () => {
     describe('sending a good request', () => {
 
       let resp;
+      let email = 'bob@mailinator.com';
+      let password = 'welcome@1';
 
       beforeEach(async () => {
         await tester.dropUsers();
         sinon.spy(transporter, 'sendMail');
-        resp = await tester.post('/user', { email: 'bob@mailinator.com', password: 'welcome@1', age: 40 });
+        resp = await tester.post('/user', { email, password, age: 40 });
       });
 
       afterEach(async () => {
@@ -53,7 +55,12 @@ describe('registering users', () => {
         assert.exists(transporter.sendMail.firstCall);
       });
 
-      it('blocks access to other resources until account is confirmed');
+      it('rejects authentication', async () => {
+        const resp = await tester.post('/user/login', { email, password });
+        assert.equal(resp.statusCode, 401);
+      });
+
+      it('blocks access to resources until account is confirmed');
       it('expires confirmation tokens after a period of time');
 
     });

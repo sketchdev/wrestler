@@ -25,6 +25,11 @@ class WrestlerTester {
     this.options = options;
   }
 
+  // noinspection JSMethodCanBeStatic
+  getDatabaseDriver() {
+    return driver;
+  }
+
   getEmailTransporter() {
     return _.get(this.options, 'email.transporter');
   }
@@ -38,7 +43,15 @@ class WrestlerTester {
   }
 
   async createUser(email, password, properties) {
-    return (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
+    const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
+    await driver.findOneAndUpdate('user', { email }, { confirmed: true });
+    return user;
+  }
+
+  async createUserWithExpiredConfirmation(email, password, properties) {
+    const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
+    await driver.findOneAndUpdate('user', { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
+    return user;
   }
 
   async loginUser(email, password) {
@@ -84,6 +97,18 @@ class WrestlerTester {
     return (await this.post('/widget', properties, token)).body;
   }
 
+  // noinspection JSMethodCanBeStatic
+  async getConfirmationCode(email) {
+    const user = await driver.findOne('user', { email });
+    return user.confirmationCode;
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async getConfirmationExpiresAt(email) {
+    const user = await driver.findOne('user', { email });
+    return user.confirmationExpiresAt;
+  }
+
 }
 
 class WrestlerTesterBuilder {
@@ -94,8 +119,8 @@ class WrestlerTesterBuilder {
     this.options = { database: { driver }, email: { transporter } };
   }
 
-  setEmailRegisterSubject(value) {
-    _.set(this.options, 'email.register.subject', value);
+  setEmailConfirmationSubject(value) {
+    _.set(this.options, 'email.confirm.subject', value);
     return this;
   }
 

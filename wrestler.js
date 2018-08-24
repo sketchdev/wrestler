@@ -1,9 +1,9 @@
 /** @namespace req.wrestler */
 /** @namespace req.wrestler.options.dbDriver */
 
-const { WhitelistError, ValidationError, LoginError } = require('./lib/errors');
+const { WhitelistError, ValidationError, LoginError, UnknownError } = require('./lib/errors');
 const { handleRestfulPostRequest, handleRestfulGetRequest, handleRestfulPutRequest, handleRestfulPatchRequest, handleRestfulDeleteRequest } = require('./lib/restful');
-const { handleLogin, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
+const { handleLogin, handleConfirmation, handleResendConfirmation, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
 const _ = require('lodash');
@@ -68,6 +68,8 @@ const transformErrors = (err, req, res, next) => {
       code = 422;
     } else if (err instanceof LoginError) {
       code = 401;
+    } else if (err instanceof UnknownError) {
+      code = 500;
     }
     res.status(code).json(res.wrestler.errors);
   } else {
@@ -88,6 +90,8 @@ module.exports = (options) => {
     validateRequest(opts),
     handleValidationErrors,
     handleLogin,
+    handleConfirmation,
+    handleResendConfirmation,
     handleUserGetRequest,
     handleUserPostRequest,
     handleUserPutRequest,
