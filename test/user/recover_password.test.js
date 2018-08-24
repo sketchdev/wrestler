@@ -1,28 +1,100 @@
 const { WrestlerTesterBuilder } = require('../setup');
+const { assert } = require('chai');
+const sinon = require('sinon');
 
 describe('recovering passwords', () => {
 
-  let tester;
+  let tester, transporter, dbDriver;
 
   before(() => {
     tester = new WrestlerTesterBuilder().enableUsers().build();
+    transporter = tester.getEmailTransporter();
+    dbDriver = tester.getDatabaseDriver();
+  });
+
+  beforeEach(async () => {
+    await tester.dropUsers();
   });
 
   context('with default options', () => {
 
-    describe('requesting a recovery token', () => {
+    describe('successfully requesting a password recovery', () => {
 
-      it('returns the correct status code');
-      it('always returns a success status code even if the user email does not exist');
-      it('sends a recovery email to the user only if the user email exists');
-      it('returns an error if no email is supplied');
+      let resp;
+      let email = 'bob@mailinator.com';
+      let password = 'welcome@1';
+
+      beforeEach(async () => {
+        await tester.createUser(email, password);
+        sinon.spy(transporter, 'sendMail');
+        resp = await tester.post('/user/forgot-password', { email });
+      });
+
+      afterEach(async () => {
+        transporter.sendMail.restore();
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('sends a recovery email', async () => {
+        assert.exists(transporter.sendMail.firstCall);
+      });
 
     });
 
-    describe('using the recovery token', () => {
+    describe('requesting recovery for missing users', () => {
 
-      it('returns the correct status code');
-      it('authenticates with the new password');
+      let resp;
+
+      beforeEach(async () => {
+        sinon.spy(transporter, 'sendMail');
+        resp = await tester.post('/user/forgot-password', { email: 'nobody@mailinator.com' });
+      });
+
+      afterEach(async () => {
+        transporter.sendMail.restore();
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('skips sending an email', async () => {
+        assert.notExists(transporter.sendMail.firstCall);
+      });
+
+    });
+
+    describe('failing to lookup user', () => {
+
+      let resp;
+      const email = 'bob@mailinator.com';
+
+      beforeEach(async () => {
+        await tester.createUser(email, 'welcome@1');
+        sinon.spy(transporter, 'sendMail');
+        sinon.stub(dbDriver, 'findOne').rejects('oops');
+        resp = await tester.post('/user/forgot-password', { email });
+      });
+
+      afterEach(async () => {
+        transporter.sendMail.restore();
+        dbDriver.findOne.restore();
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 500);
+      });
+
+      it('skips sending an email', async () => {
+        assert.notExists(transporter.sendMail.firstCall);
+      });
+
+      it('returns an error response', async () => {
+        assert.deepEqual(resp.body, { base: { messages: ['Unexpected error'] } });
+      });
 
     });
 

@@ -60,7 +60,6 @@ describe('resending confirmation to users', () => {
 
       beforeEach(async () => {
         await tester.dropUsers();
-        transporter = tester.getEmailTransporter();
         sinon.spy(transporter, 'sendMail');
         resp = await tester.post('/user/resend-confirm', { email: 'nobody@mailinator.com' });
       });
