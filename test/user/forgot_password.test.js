@@ -35,7 +35,11 @@ describe('recovering passwords', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.statusCode, 204);
+      });
+
+      it('returns an empty body', async () => {
+        assert.isEmpty(resp.body);
       });
 
       it('sends a recovery email', async () => {
@@ -58,7 +62,11 @@ describe('recovering passwords', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.statusCode, 204);
+      });
+
+      it('returns an empty body', async () => {
+        assert.isEmpty(resp.body);
       });
 
       it('skips sending an email', async () => {

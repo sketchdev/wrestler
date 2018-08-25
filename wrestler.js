@@ -3,7 +3,7 @@
 
 const { WhitelistError, ValidationError, LoginError, UnknownError } = require('./lib/errors');
 const { handleRestfulPostRequest, handleRestfulGetRequest, handleRestfulPutRequest, handleRestfulPatchRequest, handleRestfulDeleteRequest } = require('./lib/restful');
-const { handleLogin, handleConfirmation, handleResendConfirmation, handleForgotPassword, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
+const { handleLogin, handleConfirmation, handleResendConfirmation, handleForgotPassword, handleRecoverPassword, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
 const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
 const { handleEmail } = require('./lib/email');
 const _ = require('lodash');
@@ -93,6 +93,7 @@ module.exports = (options) => {
     handleConfirmation,
     handleResendConfirmation,
     handleForgotPassword,
+    handleRecoverPassword,
     handleUserGetRequest,
     handleUserPostRequest,
     handleUserPutRequest,

@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const db = require('../lib/db');
+const moment = require('moment');
 
 let driver;
 
@@ -107,6 +108,19 @@ class WrestlerTester {
   async getConfirmationExpiresAt(email) {
     const user = await driver.findOne('user', { email });
     return user.confirmationExpiresAt;
+  }
+
+  // TODO: dry up getConfirmationCode, getRecoveryCode, getConfirmationExpiresAt with a getUser method
+  // noinspection JSMethodCanBeStatic
+  async getRecoveryCode(email) {
+    const user = await driver.findOne('user', { email });
+    return user.recoveryCode;
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async expireRecoveryCode(email) {
+    const recoveryExpiresAt = moment().subtract(1, 'day').toDate();
+    await driver.findOneAndUpdate('user', { email }, { recoveryExpiresAt });
   }
 
 }

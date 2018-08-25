@@ -27,20 +27,11 @@ describe('confirming users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.statusCode, 204);
       });
 
-      it('returns user details', async () => {
-        assert.equal(resp.body.email, email);
-        assert.exists(resp.body.createdAt);
-        assert.exists(resp.body.updatedAt);
-        assert.exists(resp.body.id);
-      });
-
-      it('omits sensitive details', async () => {
-        assert.notExists(resp.body.password);
-        assert.notExists(resp.body.confirmationCode);
-        assert.notExists(resp.body.confirmed);
+      it('returns an empty body', async () => {
+        assert.isEmpty(resp.body);
       });
 
     });
@@ -60,7 +51,7 @@ describe('confirming users', () => {
         await tester.createUser(email, password);
         const resp = await tester.post('/user/confirm', { email, confirmationCode: 'a' });
         assert.equal(resp.statusCode, 422);
-        assert.deepEqual(resp.body, { confirmationCode: { messages: ['Invalid confirmationCode'] }});
+        assert.deepEqual(resp.body, { confirmationCode: { messages: ['Invalid confirmation code'] }});
       });
 
       it('returns an error if the confirmationCode is expired', async () => {
@@ -71,7 +62,7 @@ describe('confirming users', () => {
         const confirmationCode = await tester.getConfirmationCode(email);
         const resp = await tester.post('/user/confirm', { email, confirmationCode });
         assert.equal(resp.statusCode, 422);
-        assert.deepEqual(resp.body, { confirmationCode: { messages: ['Expired confirmationCode'] }});
+        assert.deepEqual(resp.body, { confirmationCode: { messages: ['Expired confirmation code'] }});
       });
 
     });
