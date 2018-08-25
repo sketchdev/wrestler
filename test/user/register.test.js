@@ -52,7 +52,10 @@ describe('registering users', () => {
       });
 
       it('sends an email', async () => {
+        const confirmationCode = await tester.getConfirmationCode(email);
         assert.exists(transporter.sendMail.firstCall);
+        const text = `Please confirm your email. Your confirmation code is ${confirmationCode}`;
+        assert.equal(transporter.sendMail.args[0][0].text, text);
       });
 
       it('rejects authentication', async () => {

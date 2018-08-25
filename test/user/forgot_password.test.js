@@ -43,7 +43,10 @@ describe('recovering passwords', () => {
       });
 
       it('sends a recovery email', async () => {
+        const recoveryCode = await tester.getRecoveryCode(email);
         assert.exists(transporter.sendMail.firstCall);
+        const text = `You requested to recover your password. Your recovery code is ${recoveryCode}`;
+        assert.equal(transporter.sendMail.args[0][0].text, text);
       });
 
     });
