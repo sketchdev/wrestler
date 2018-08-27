@@ -12,6 +12,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(wrestler());
+app.use(wrestler({ users: true }));
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}...`));

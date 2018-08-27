@@ -35,7 +35,7 @@ const connectToDatabase = async (req, res, next) => {
   try {
     if (!dbDriver) {
       const databaseOptions = _.get(req, 'wrestler.options.database');
-      if (databaseOptions.driver && db.isValidDriver(databaseOptions.driver)) {
+      if (databaseOptions && databaseOptions.driver && db.isValidDriver(databaseOptions.driver)) {
         dbDriver = databaseOptions.driver
       } else {
         dbDriver = await db.connect(databaseOptions);

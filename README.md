@@ -11,7 +11,7 @@
 <img src="https://raw.githubusercontent.com/sketchdev/wrestler/master/logo.png" height="200px" alt="Wrestler" align="right"/>
 
 Wrestler jumpstarts your productivity by removing the need to build a backend API for your application.
-Keep focusing on your React, Angular, or Vue front-end while the backend API comes for free!
+Keep focusing on your mobile application or other front-end (React, Angular, or Vue) while the backend API comes for free!
 
 ## Features
 
@@ -54,6 +54,12 @@ app.listen(3000, () => console.log('Example app listening on port 3000!'))
 ```
 
 Done! Now you can call your local application in a RESTful way and it'll automatically work!
+
+## Examples
+
+The examples folder in this repository highlights several examples and use-cases for Wrestler. 
+Please browse through these examples for inspiration. 
+Sometimes a sample of code and it's usage says everything you need to get started.
 
 ## Reference
 

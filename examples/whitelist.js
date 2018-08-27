@@ -12,6 +12,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(wrestler());
+app.use(wrestler({
+  validation: {
+    whitelist: true, // enables whitelisting resources
+    resources: { movies: true, actors: true } // indicates which resources are allowed
+  }
+}));
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}...`));
