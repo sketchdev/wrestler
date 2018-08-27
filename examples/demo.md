@@ -28,3 +28,5 @@ An opinionated framework with great defaults, but also has the ability to extend
 
 * You can easily extend and/or override anything without learning anything new.
     - Because your application is not just a RESTful API.
+    
+* Can be deployed anywhere!
