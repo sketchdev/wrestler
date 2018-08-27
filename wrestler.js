@@ -8,6 +8,7 @@ const { whitelist, validateRequest, handleValidationErrors } = require('./lib/va
 const { handleEmail } = require('./lib/email');
 const _ = require('lodash');
 const db = require('./lib/db');
+const userChangeEmailHandler = require('./lib/users/change_email').userChangeEmailHandler;
 
 let dbDriver;
 
@@ -94,6 +95,7 @@ module.exports = (options) => {
     handleResendConfirmation,
     handleForgotPassword,
     handleRecoverPassword,
+    userChangeEmailHandler,
     handleUserGetRequest,
     handleUserPostRequest,
     handleUserPutRequest,

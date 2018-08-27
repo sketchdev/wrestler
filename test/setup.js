@@ -43,6 +43,10 @@ class WrestlerTester {
     await this.options.database.driver.dropCollections('widget');
   }
 
+  async drop(collections) {
+    await this.options.database.driver.dropCollections(collections);
+  }
+
   async createUser(email, password, properties) {
     const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
     await driver.findOneAndUpdate('user', { email }, { confirmed: true });
@@ -121,6 +125,11 @@ class WrestlerTester {
   async expireRecoveryCode(email) {
     const recoveryExpiresAt = moment().subtract(1, 'day').toDate();
     await driver.findOneAndUpdate('user', { email }, { recoveryExpiresAt });
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async getUser(email) {
+    return await driver.findOne('user', { email });
   }
 
 }
