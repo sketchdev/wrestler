@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const logger = require('morgan');
-const wrestler = require('./wrestler');
+const wrestler = require('../wrestler');
 
 const PORT = process.env.PORT || 3000;
 
