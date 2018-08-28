@@ -8,6 +8,7 @@ const { whitelist, validateRequest, handleValidationErrors } = require('./lib/va
 const { handleEmail } = require('./lib/email');
 const _ = require('lodash');
 const db = require('./lib/db');
+const cors = require('cors');
 const userChangeEmailHandler = require('./lib/users/change_email').userChangeEmailHandler;
 
 let dbDriver;
@@ -22,12 +23,6 @@ const defaultOptions = {
 const setOptions = (options) => async (req, res, next) => {
   req.wrestler = { options };
   res.wrestler = {};
-  next();
-};
-
-const setCors = async (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Location");
   next();
 };
 
@@ -82,7 +77,7 @@ module.exports = (options) => {
   const opts = Object.assign({}, defaultOptions, options);
   return [
     setOptions(opts),
-    setCors,
+    cors(),
     connectToDatabase,
     parseRequest,
     checkAuthentication,
