@@ -73,18 +73,22 @@ const transformErrors = (err, req, res, next) => {
   }
 };
 
-module.exports = (options) => {
+const setup = exports.setup = (options) => {
   const opts = Object.assign({}, defaultOptions, options);
+  return [setOptions(opts), cors(), connectToDatabase, parseRequest];
+};
+
+const auth = exports.auth = () => {
+  return [checkAuthentication, checkAuthorization]
+};
+
+const validate = exports.validate = (options) => {
+  const opts = Object.assign({}, defaultOptions, options);
+  return [whitelist, validateRequest(opts), handleValidationErrors]
+};
+
+const users = exports.users = () => {
   return [
-    setOptions(opts),
-    cors(),
-    connectToDatabase,
-    parseRequest,
-    checkAuthentication,
-    checkAuthorization,
-    whitelist,
-    validateRequest(opts),
-    handleValidationErrors,
     handleLogin,
     handleConfirmation,
     handleResendConfirmation,
@@ -95,13 +99,37 @@ module.exports = (options) => {
     handleUserPostRequest,
     handleUserPutRequest,
     handleUserPatchRequest,
-    handleUserDeleteRequest,
+    handleUserDeleteRequest
+  ];
+};
+
+const restful = exports.restful = () => {
+  return [
     handleRestfulPostRequest,
     handleRestfulGetRequest,
     handleRestfulPutRequest,
     handleRestfulPatchRequest,
     handleRestfulDeleteRequest,
-    handleEmail,
-    transformErrors
+  ]
+};
+
+const emailer = exports.emailer = () => {
+  return [handleEmail];
+};
+
+const errors = exports.errors = () => {
+  return [transformErrors];
+};
+
+module.exports = (options) => {
+  const middlewares = [
+    setup(options),
+    auth(),
+    validate(options),
+    users(),
+    restful(),
+    emailer(),
+    errors()
   ];
+  return [].concat.apply([], middlewares);
 };

@@ -25,21 +25,23 @@ Keep focusing on your mobile application or other front-end (React, Angular, or 
 * Allows inserting your own handlers for situations that REST doesn't support.
 
 
-## Middleware Usage
+## Installation
 
-Install the library using your package manager of choice. Below is an example of installing with Yarn.
+Install the library using your package manager of choice. Below is an example of installing with [Yarn](https://yarnpkg.com/en/).
 
 ```bash
 yarn add wrestler
 ```
 
-Or, install using `npm`
+Or use [NPM](https://www.npmjs.com/)
 
 ```sh
-npm i wrestler
+npm i wrestler --save
 ```
 
-Next, use Wrestler as middleware in an express application.
+## Quick start
+
+Use Wrestler as middleware in an [Express](https://expressjs.com/) application.
 
 ```javascript
 const express = require('express');
@@ -53,18 +55,128 @@ app.use(wrestler());
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
 ```
 
-Done! Now you can call your local application in a RESTful way and it'll automatically work!
+## Even quicker quick start
 
-## Examples
+Use the [wrestler-cli](https://github.com/sketchdev/wrestler-cli) project to fire up a Wrestler instance without installing anything!
 
-The examples folder in this repository highlights several examples and use-cases for Wrestler. 
-Please browse through these examples for inspiration. 
-Sometimes a sample of code and it's usage says everything you need to get started.
+```bash
+npx wrestler-cli
+```
+
+```bash
+ __        __             _   _           
+ \ \      / / __ ___  ___| |_| | ___ _ __ 
+  \ \ /\ / / '__/ _ \/ __| __| |/ _ \ '__|
+   \ V  V /| | |  __/\__ \ |_| |  __/ |   
+    \_/\_/ |_|  \___||___/\__|_|\___|_|   
+                                          
+Listening on port 3077...
+```
+
+
+
+## Guides
+
+Wrestler is fantastic for prototyping; however, it can be extended further for production use.
+Below are some guides that allow you to setup Wrestler for your specific requirements.
+
+### Persisting data
+
+By default, Wrestler only stores information in-memory. If you stop the server, then say bye-bye to your data.
+This is great for some cases like testing and prototyping, but not so much if you want to make the next big thing.
+
+You have a couple options to save data for the long term.
+
+* File system
+* MongoDB
+* Custom driver
+
+If you only need to save data in-between starts and stops for a prototyping application, then
+you can use the file system.
+
+```js
+app.use(wrestler({
+  database: { persistentDataPath: '/some/path/to/a/directory' }
+}));
+```
+
+If you need a more robust solution, then either use MongoDB (below) or write your own custom driver (which isn't very hard).
+
+### Using [MongoDB](https://www.mongodb.com/)
+
+Okay, so you're not prototyping or testing and you need a better database solution.
+We've got you covered with the MongoDB driver.
+
+All you need to do is set two environment variables.
+`MONGO_DB_URI` and `MONGO_DB_NAME`.
+
+`MONGO_DB_URI` is the URI for connecting. Here's an example `mongodb+srv://<USER>:<PASSWORD>@cluster0-83hA7.mongodb.net/test`
+
+`MONGO_DB_NAME` is the name of your database.
+
+Note that Wrestler doesn't attempt to connect until after the first request. This is so the
+server starts up quicker. So, verify your connection by sending a `GET` request or something.
+
+### Enabling user logins
+
+Most applications need some type of user support. Wrestler has great support for users
+with just a single option.
+
+```js
+app.use(wrestler({ users: true }))
+```
+
+When the `users` option is set to `true`, then the following endpoints become available.
+
+```http
+POST   /user { email, password, ...anything else }
+POST   /user/login { email, password }
+POST   /user/confirm { email, confirmationCode }
+POST   /user/resend-confirm { email }
+POST   /user/forgot-password { email }
+POST   /user/recover-password { email, recoveryCode }
+GET    /user
+GET    /user/:id
+PATCH  /user/:id { email, password, ...anything else }
+DELETE /user/:id
+```
+
+### Handling requests that aren't RESTful
+
+### Overriding requests
+
+### Whitelisting resource endpoints
+
+### Validating requests
+
+### Custom email transporter
+
+### Customized email content
+
+### Adding authorization
+
+### Writing a database driver
+
+
 
 ## Reference
 
-TBD
+### Importing
 
-## Contributing
+### Setup
 
-TBD
+### Authentication
+
+### Authorization
+
+### Whitelisting
+
+### Validation
+
+### Users
+
+### RESTful
+
+### Emailing
+
+### Errors
