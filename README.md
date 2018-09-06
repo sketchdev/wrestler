@@ -91,7 +91,7 @@ You have a couple options to save data for the long term.
 * MongoDB
 * Custom driver
 
-If you only need to save data in-between starts and stops for a prototyping application, then
+If you only need to save data in-between starts and stops for prototyping, then
 you can use the file system.
 
 ```js
@@ -110,7 +110,9 @@ We've got you covered with the MongoDB driver.
 All you need to do is set two environment variables.
 `MONGO_DB_URI` and `MONGO_DB_NAME`.
 
-`MONGO_DB_URI` is the URI for connecting. Here's an example `mongodb+srv://<USER>:<PASSWORD>@cluster0-83hA7.mongodb.net/test`
+`MONGO_DB_URI` is the URI for connecting. 
+
+Here's an example `mongodb+srv://<USER>:<PASSWORD>@cluster0-83hA7.mongodb.net/test`
 
 `MONGO_DB_NAME` is the name of your database.
 
@@ -129,34 +131,34 @@ app.use(wrestler({ users: true }))
 When the `users` option is set to `true` each request is scoped to the authenticated user.
 In other words, any resource created by one user can only be accessed by that user.
 
-When the `users` option is set to `roles` then the following things occur.
+When the `users` option is set to `'roles'` then the following things occur.
 
 * A root user is created
   - By default the username is `wrestler` with a password of `wrestler`
-  - If environment variables of `ROOT_USER` and `ROOT_PASS` then the root user will have those credentials
+  - If environment variables of `ROOT_USER` and `ROOT_PASS` exist, then the root user will have those credentials
 * Every __new__ user will have a `role`
-  - The root user's role will be `admin`
-* Any __new__ user created will have a `role` of `guest`
-  - Unless an `admin` user is creating the user, then `role` can be anything.
+  - The root user's role will be `'admin'`
+* Any __new__ user created will have a `role` of `'guest'`
+  - Unless an `'admin'` user is creating the user, then `role` can be anything.
 * Any user can create, read, update, or delete themselves
-* Any `admin` can create, read, update, or delete any other user.
+* Any `'admin'` can create, read, update, or delete any other user.
 
 When the `users` option is a function, then it will be called like traditional Express middleware.
-This gives the ability the create whatever authorization logic works for you.
+This gives you the ability to create whatever authorization logic works for you.
 A good library for authorization is [node_acl](https://github.com/OptimalBits/node_acl).
 
 Below are the endpoints exposed when user support is enabled.
 
 ```http
-POST   /user { email, password, ...anything else }
-POST   /user/login { email, password }
-POST   /user/confirm { email, confirmationCode }
-POST   /user/resend-confirm { email }
-POST   /user/forgot-password { email }
-POST   /user/recover-password { email, recoveryCode }
+POST   /user                    { email, password, ...anything else }
+POST   /user/login              { email, password }
+POST   /user/confirm            { email, confirmationCode }
+POST   /user/resend-confirm     { email }
+POST   /user/forgot-password    { email }
+POST   /user/recover-password   { email, recoveryCode }
 GET    /user
 GET    /user/:id
-PATCH  /user/:id { email, password, ...anything else } IN-PROGRESS
+PATCH  /user/:id                { email, password, ...anything else } IN-PROGRESS
 DELETE /user/:id 
 ```
 
