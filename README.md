@@ -126,7 +126,26 @@ with just a single option.
 app.use(wrestler({ users: true }))
 ```
 
-When the `users` option is set to `true`, then the following endpoints become available.
+When the `users` option is set to `true` each request is scoped to the authenticated user.
+In other words, any resource created by one user can only be accessed by that user.
+
+When the `users` option is set to `roles` then the following things occur.
+
+* A root user is created
+  - By default the username is `wrestler` with a password of `wrestler`
+  - If environment variables of `ROOT_USER` and `ROOT_PASS` then the root user will have those credentials
+* Every __new__ user will have a `role`
+  - The root user's role will be `admin`
+* Any __new__ user created will have a `role` of `guest`
+  - Unless an `admin` user is creating the user, then `role` can be anything.
+* Any user can create, read, update, or delete themselves
+* Any `admin` can create, read, update, or delete any other user.
+
+When the `users` option is a function, then it will be called like traditional Express middleware.
+This gives the ability the create whatever authorization logic works for you.
+A good library for authorization is [node_acl](https://github.com/OptimalBits/node_acl).
+
+Below are the endpoints exposed when user support is enabled.
 
 ```http
 POST   /user { email, password, ...anything else }
@@ -137,8 +156,8 @@ POST   /user/forgot-password { email }
 POST   /user/recover-password { email, recoveryCode }
 GET    /user
 GET    /user/:id
-PATCH  /user/:id { email, password, ...anything else }
-DELETE /user/:id
+PATCH  /user/:id { email, password, ...anything else } IN-PROGRESS
+DELETE /user/:id 
 ```
 
 ### Handling requests that aren't RESTful

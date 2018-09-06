@@ -11,7 +11,7 @@ const db = require('./lib/db');
 const cors = require('cors');
 const userChangeEmailHandler = require('./lib/users/change_email').userChangeEmailHandler;
 
-let dbDriver;
+let dbDriver, effectiveOptions;
 
 const defaultOptions = {
   pageSize: 20,
@@ -20,22 +20,33 @@ const defaultOptions = {
   resources: {},
 };
 
-const setOptions = (options) => async (req, res, next) => {
-  req.wrestler = { options };
+const setupDatabase = async (databaseOptions) => {
+  if (!dbDriver) {
+    const driver = databaseOptions.driver;
+    if (driver && db.isValidDriver(driver)) {
+      dbDriver = driver
+    } else {
+      dbDriver = await db.connect(databaseOptions);
+    }
+  }
+};
+
+const setupOptions = (options) => {
+  if (options.reloadOptions || !effectiveOptions) {
+    effectiveOptions = Object.assign({}, defaultOptions, options);
+  }
+};
+
+const addOptions = (req, res, next) => {
+  req.wrestler = { options: effectiveOptions };
   res.wrestler = {};
   next();
 };
 
-const connectToDatabase = async (req, res, next) => {
+const addDatabase = async (req, res, next) => {
+  const databaseOptions = _.get(req, 'wrestler.options.database');
   try {
-    if (!dbDriver) {
-      const databaseOptions = _.get(req, 'wrestler.options.database');
-      if (databaseOptions && databaseOptions.driver && db.isValidDriver(databaseOptions.driver)) {
-        dbDriver = databaseOptions.driver
-      } else {
-        dbDriver = await db.connect(databaseOptions);
-      }
-    }
+    await setupDatabase(databaseOptions);
     req.wrestler.dbDriver = dbDriver;
     next();
   } catch (err) {
@@ -73,9 +84,17 @@ const transformErrors = (err, req, res, next) => {
   }
 };
 
-const setup = exports.setup = (options) => {
-  const opts = Object.assign({}, defaultOptions, options);
-  return [setOptions(opts), cors(), connectToDatabase, parseRequest];
+exports.db = () => {
+  return dbDriver;
+};
+
+const setup = exports.setup = async (options) => {
+  setupOptions(options);
+  await setupDatabase(effectiveOptions.database);
+};
+
+const start = exports.start = () => {
+  return [addOptions, cors(), addDatabase, parseRequest];
 };
 
 const auth = exports.auth = () => {
@@ -122,8 +141,9 @@ const errors = exports.errors = () => {
 };
 
 module.exports = (options) => {
+  setupOptions(options);
   const middlewares = [
-    setup(options),
+    start(options),
     auth(),
     validate(options),
     users(),

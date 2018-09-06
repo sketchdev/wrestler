@@ -139,7 +139,7 @@ class WrestlerTesterBuilder {
   constructor() {
     const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     const transporter = nodemailer.createTransport(transport);
-    this.options = { database: { driver }, email: { transporter } };
+    this.options = { database: { driver }, email: { transporter }, reloadOptions: true };
   }
 
   setEmailConfirmationSubject(value) {
