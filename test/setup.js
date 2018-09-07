@@ -1,61 +1,51 @@
-require('dotenv').config({ path: '.env.test' });
-
 const express = require('express');
 const wrestler = require('../wrestler');
 const supertest = require('supertest');
 const nodemailer = require('nodemailer');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
-const db = require('../lib/db');
 const moment = require('moment');
-
-let driver;
-
-const initDatabase = async () => {
-  driver = await db.connect();
-};
-
-(async () => {
-  await initDatabase();
-})().then(run);
+const common = require('../lib/users/common');
 
 class WrestlerTester {
 
-  constructor(app, options) {
+  constructor(app) {
     this.request = supertest(app);
-    this.options = options;
   }
 
-  // noinspection JSMethodCanBeStatic
   getDatabaseDriver() {
-    return driver;
+    return wrestler.db();
   }
 
   getEmailTransporter() {
-    return _.get(this.options, 'email.transporter');
+    return _.get(wrestler.options(), 'email.transporter');
   }
 
   async dropUsers() {
-    await this.options.database.driver.dropCollections('user');
+    await wrestler.db().dropCollections('user');
   }
 
   async dropWidgets() {
-    await this.options.database.driver.dropCollections('widget');
+    await wrestler.db().dropCollections('widget');
   }
 
-  async drop(collections) {
-    await this.options.database.driver.dropCollections(collections);
+  async drops(collections) {
+    await wrestler.db().dropCollections(collections);
   }
 
   async createUser(email, password, properties) {
-    const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
-    await driver.findOneAndUpdate('user', { email }, { confirmed: true });
+    const resp = await this.request.post('/user').send(Object.assign({ email, password }, properties));
+    if (resp.status !== 201) {
+      throw new Error(`failed to create user: ${email}`);
+    }
+    const user = (resp).body;
+    await wrestler.db().findOneAndUpdate('user', { email }, { confirmed: true });
     return user;
   }
 
   async createUserWithExpiredConfirmation(email, password, properties) {
     const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
-    await driver.findOneAndUpdate('user', { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
+    await wrestler.db().findOneAndUpdate('user', { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
     return user;
   }
 
@@ -104,32 +94,47 @@ class WrestlerTester {
 
   // noinspection JSMethodCanBeStatic
   async getConfirmationCode(email) {
-    const user = await driver.findOne('user', { email });
+    const user = await wrestler.db().findOne('user', { email });
     return user.confirmationCode;
   }
 
   // noinspection JSMethodCanBeStatic
   async getConfirmationExpiresAt(email) {
-    const user = await driver.findOne('user', { email });
+    const user = await wrestler.db().findOne('user', { email });
     return user.confirmationExpiresAt;
   }
 
   // TODO: dry up getConfirmationCode, getRecoveryCode, getConfirmationExpiresAt with a getUser method
   // noinspection JSMethodCanBeStatic
   async getRecoveryCode(email) {
-    const user = await driver.findOne('user', { email });
+    const user = await wrestler.db().findOne('user', { email });
     return user.recoveryCode;
   }
 
   // noinspection JSMethodCanBeStatic
   async expireRecoveryCode(email) {
     const recoveryExpiresAt = moment().subtract(1, 'day').toDate();
-    await driver.findOneAndUpdate('user', { email }, { recoveryExpiresAt });
+    await wrestler.db().findOneAndUpdate('user', { email }, { recoveryExpiresAt });
   }
 
   // noinspection JSMethodCanBeStatic
   async getUser(email) {
-    return await driver.findOne('user', { email });
+    return await wrestler.db().findOne('user', { email });
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async createRootUser() {
+    await await wrestler.db().insertOne('user', { email: common.ROOT_EMAIL, password: common.ROOT_PASS });
+  }
+
+  async createAndLoginRootUser() {
+    await this.createRootUser();
+    return await this.loginUser(common.ROOT_EMAIL, common.ROOT_PASS);
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async getRootUser() {
+    return await wrestler.db().findOne('user', { email: common.ROOT_EMAIL });
   }
 
 }
@@ -139,7 +144,7 @@ class WrestlerTesterBuilder {
   constructor() {
     const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     const transporter = nodemailer.createTransport(transport);
-    this.options = { database: { driver }, email: { transporter }, reloadOptions: true };
+    this.options = { email: { transporter }, reload: true };
   }
 
   setEmailConfirmationSubject(value) {
@@ -157,11 +162,12 @@ class WrestlerTesterBuilder {
     return this;
   }
 
-  build() {
+  async build() {
+    const api = await wrestler.setup(this.options);
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(wrestler(this.options));
+    app.use(api);
     return new WrestlerTester(app, this.options);
   }
 

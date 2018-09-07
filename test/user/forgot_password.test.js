@@ -6,8 +6,8 @@ describe('recovering passwords', () => {
 
   let tester, transporter, dbDriver;
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().enableUsers().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     transporter = tester.getEmailTransporter();
     dbDriver = tester.getDatabaseDriver();
   });

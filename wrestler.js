@@ -1,15 +1,11 @@
-/** @namespace req.wrestler */
-/** @namespace req.wrestler.options.dbDriver */
-
-const { WhitelistError, ValidationError, LoginError, UnknownError } = require('./lib/errors');
-const { handleRestfulPostRequest, handleRestfulGetRequest, handleRestfulPutRequest, handleRestfulPatchRequest, handleRestfulDeleteRequest } = require('./lib/restful');
-const { handleLogin, handleConfirmation, handleResendConfirmation, handleForgotPassword, handleRecoverPassword, handleUserGetRequest, handleUserPostRequest, handleUserPutRequest, handleUserPatchRequest, handleUserDeleteRequest, checkAuthentication, checkAuthorization } = require('./lib/users');
-const { whitelist, validateRequest, handleValidationErrors } = require('./lib/validation');
-const { handleEmail } = require('./lib/email');
 const _ = require('lodash');
 const db = require('./lib/db');
-const cors = require('cors');
-const userChangeEmailHandler = require('./lib/users/change_email').userChangeEmailHandler;
+const errors = require('./lib/errors');
+const restful = require('./lib/restful');
+const users = require('./lib/users');
+const validation = require('./lib/validation');
+const changeEmail = require('./lib/users/change_email');
+const email = require('./lib/email');
 
 let dbDriver, effectiveOptions;
 
@@ -20,20 +16,30 @@ const defaultOptions = {
   resources: {},
 };
 
-const setupDatabase = async (databaseOptions) => {
+const setupOptions = (options) => {
+  if (options.reload || !effectiveOptions) {
+    effectiveOptions = Object.assign({}, defaultOptions, options);
+  }
+};
+
+const setupDatabase = async () => {
   if (!dbDriver) {
-    const driver = databaseOptions.driver;
+    const driver = _.get(effectiveOptions, 'database.driver');
     if (driver && db.isValidDriver(driver)) {
       dbDriver = driver
     } else {
-      dbDriver = await db.connect(databaseOptions);
+      dbDriver = await db.connect(effectiveOptions.database);
     }
   }
 };
 
-const setupOptions = (options) => {
-  if (options.reloadOptions || !effectiveOptions) {
-    effectiveOptions = Object.assign({}, defaultOptions, options);
+const setupRootUser = async () => {
+  const authorization = _.get(effectiveOptions, 'users.authorization');
+  if (authorization === 'roles') {
+    const rootUser = await dbDriver.findOne('user', { email: 'root' });
+    if (!rootUser) {
+      await dbDriver.insertOne('user', { email: 'root', password: 'wrestler', role: 'admin' });
+    }
   }
 };
 
@@ -69,13 +75,13 @@ const parseRequest = async (req, res, next) => {
 const transformErrors = (err, req, res, next) => {
   if (res.wrestler.errors) {
     let code = 400;
-    if (err instanceof WhitelistError) {
+    if (err instanceof errors.WhitelistError) {
       code = 404;
-    } else if (err instanceof ValidationError) {
+    } else if (err instanceof errors.ValidationError) {
       code = 422;
-    } else if (err instanceof LoginError) {
+    } else if (err instanceof errors.LoginError) {
       code = 401;
-    } else if (err instanceof UnknownError) {
+    } else if (err instanceof errors.UnknownError) {
       code = 500;
     }
     res.status(code).json(res.wrestler.errors);
@@ -84,72 +90,64 @@ const transformErrors = (err, req, res, next) => {
   }
 };
 
+const startMiddlware = () => {
+  return [addOptions, addDatabase, parseRequest];
+};
+
+const authMiddleware = () => {
+  return [users.checkAuthentication, users.checkAuthorization]
+};
+
+const validateMiddleware = () => {
+  return [validation.whitelist, validation.validateRequest(effectiveOptions), validation.handleValidationErrors]
+};
+
+const userMiddleware = () => {
+  return [
+    users.handleLogin,
+    users.handleConfirmation,
+    users.handleResendConfirmation,
+    users.handleForgotPassword,
+    users.handleRecoverPassword,
+    changeEmail.userChangeEmailHandler,
+    users.handleUserGetRequest,
+    users.handleUserPostRequest,
+    users.handleUserPutRequest,
+    users.handleUserPatchRequest,
+    users.handleUserDeleteRequest,
+  ];
+};
+
+const restfulMiddleware = () => {
+  return [
+    restful.handleRestfulPostRequest,
+    restful.handleRestfulGetRequest,
+    restful.handleRestfulPutRequest,
+    restful.handleRestfulPatchRequest,
+    restful.handleRestfulDeleteRequest,
+  ]
+};
+
+const emailMiddleware = () => {
+  return [email.handleEmail];
+};
+
+const errorMiddlware = () => {
+  return [transformErrors];
+};
+
+exports.setup = async (options) => {
+  setupOptions(options);
+  await setupDatabase();
+  await setupRootUser();
+  const middlewares = [startMiddlware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddlware()];
+  return [].concat.apply([], middlewares);
+};
+
 exports.db = () => {
   return dbDriver;
 };
 
-const setup = exports.setup = async (options) => {
-  setupOptions(options);
-  await setupDatabase(effectiveOptions.database);
-};
-
-const start = exports.start = () => {
-  return [addOptions, cors(), addDatabase, parseRequest];
-};
-
-const auth = exports.auth = () => {
-  return [checkAuthentication, checkAuthorization]
-};
-
-const validate = exports.validate = (options) => {
-  const opts = Object.assign({}, defaultOptions, options);
-  return [whitelist, validateRequest(opts), handleValidationErrors]
-};
-
-const users = exports.users = () => {
-  return [
-    handleLogin,
-    handleConfirmation,
-    handleResendConfirmation,
-    handleForgotPassword,
-    handleRecoverPassword,
-    userChangeEmailHandler,
-    handleUserGetRequest,
-    handleUserPostRequest,
-    handleUserPutRequest,
-    handleUserPatchRequest,
-    handleUserDeleteRequest
-  ];
-};
-
-const restful = exports.restful = () => {
-  return [
-    handleRestfulPostRequest,
-    handleRestfulGetRequest,
-    handleRestfulPutRequest,
-    handleRestfulPatchRequest,
-    handleRestfulDeleteRequest,
-  ]
-};
-
-const emailer = exports.emailer = () => {
-  return [handleEmail];
-};
-
-const errors = exports.errors = () => {
-  return [transformErrors];
-};
-
-module.exports = (options) => {
-  setupOptions(options);
-  const middlewares = [
-    start(options),
-    auth(),
-    validate(options),
-    users(),
-    restful(),
-    emailer(),
-    errors()
-  ];
-  return [].concat.apply([], middlewares);
+exports.options = () => {
+  return effectiveOptions;
 };

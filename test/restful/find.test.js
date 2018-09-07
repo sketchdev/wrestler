@@ -5,8 +5,8 @@ describe('finding widgets', () => {
 
   let tester;
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().build();
   });
 
   context('with users disabled', () => {

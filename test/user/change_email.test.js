@@ -7,13 +7,13 @@ describe('changing email', () => {
   let tester, transporter;
   const existingEmail = 'bob@mailinator.com';
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().enableUsers().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     transporter = tester.getEmailTransporter();
   });
 
   beforeEach(async () => {
-    await tester.drop('user', 'widget');
+    await tester.drops('user', 'widget');
   });
 
   context('with default options', () => {

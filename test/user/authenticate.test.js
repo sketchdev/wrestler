@@ -5,8 +5,8 @@ describe('authenticating users', () => {
 
   let tester;
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().enableUsers().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 
   context('with default options', () => {

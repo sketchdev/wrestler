@@ -6,8 +6,8 @@ describe('registering users', () => {
 
   let tester, transporter;
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().setEmailConfirmationSubject('Welcome!').enableUsers().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().setEmailConfirmationSubject('Welcome!').enableUsers().build();
     transporter = tester.getEmailTransporter();
   });
 

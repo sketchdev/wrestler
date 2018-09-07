@@ -5,8 +5,8 @@ describe('validating resources', () => {
 
   let tester;
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().enableValidation({
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().enableValidation({
       resources: {
         widget: {
           name: {

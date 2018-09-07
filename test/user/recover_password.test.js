@@ -9,8 +9,8 @@ describe('recovering user passwords', () => {
   let password = 'welcome@1';
   let newPassword = 'welcome@2';
 
-  before(() => {
-    tester = new WrestlerTesterBuilder().enableUsers().build();
+  before(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     dbDriver = tester.getDatabaseDriver();
   });
 

@@ -11,8 +11,8 @@ describe('resending confirmation to users', () => {
       let tester, transporter, resp, confirmationCode, confirmationExpiresAt;
       const email = 'bob@mailinator.com';
 
-      before(() => {
-        tester = new WrestlerTesterBuilder().enableUsers().build();
+      before(async () => {
+        tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
       });
 
@@ -57,8 +57,8 @@ describe('resending confirmation to users', () => {
 
       let tester, transporter, resp;
 
-      before(() => {
-        tester = new WrestlerTesterBuilder().enableUsers().build();
+      before(async () => {
+        tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
       });
 
@@ -90,8 +90,8 @@ describe('resending confirmation to users', () => {
 
       let tester, transporter, resp;
 
-      before(() => {
-        tester = new WrestlerTesterBuilder().enableUsers().build();
+      before(async () => {
+        tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
       });
 
@@ -124,8 +124,8 @@ describe('resending confirmation to users', () => {
       let tester, transporter, dbDriver, resp;
       const email = 'bob@mailinator.com';
 
-      before(() => {
-        tester = new WrestlerTesterBuilder().enableUsers().build();
+      before(async () => {
+        tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
         dbDriver = tester.getDatabaseDriver();
       });
