@@ -17,7 +17,7 @@ const defaultOptions = {
   resources: {},
 };
 
-const setupOptions = (options) => {
+const setupOptions = (options={}) => {
   if (options.reload || !effectiveOptions) {
     effectiveOptions = Object.assign({}, defaultOptions, options);
   }
