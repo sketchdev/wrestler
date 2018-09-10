@@ -96,11 +96,13 @@ describe('authorizing users', () => {
 
     describe('root user access', () => {
 
-      let token;
+      let token, adminUser, guestUser;
 
       beforeEach(async () => {
         await tester.dropUsers();
         token = await tester.createAndLoginRootUser();
+        adminUser = await tester.createUser('admin@mailinator.com', 'welcome@1');
+        guestUser = await tester.createUser('guest@mailinator.com', 'welcome@1');
       });
 
       it('allows the root user to create admins', async () => {
@@ -115,7 +117,11 @@ describe('authorizing users', () => {
         await createUserWithRole(token, 'manager');
       });
 
-      it('allows the root user to read guests');
+      it('allows the root user to read guests', async () => {
+        const resp = await tester.get(`/user/${guestUser.id}`, token);
+        assert.equal(resp.body.id, guestUser.id);
+      });
+
       it('allows the root user to read admins');
       it('allows the root user to update guests');
       it('allows the root user to update admins');
@@ -167,7 +173,7 @@ describe('authorizing users', () => {
       });
 
       it('prevents guests from updating a custom role');
-      it('allows guest to read themselves');
+      it('allows guests to read themselves');
       it('prevents guests from reading others');
       it('allows guests to update themselves');
       it('prevents guests from updating others');
