@@ -9,12 +9,16 @@ describe('finding users', () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
+
   context('with default options', () => {
 
-    let sam, tom;
+    let tom;
 
     beforeEach(async () => {
-      await tester.dropUsers();
       tom = await tester.createAndLoginUser('tom@mailinator.com', 'welcome@1', { age: 40 });
     });
 
@@ -80,19 +84,8 @@ describe('finding users', () => {
 
     describe('sending a bad requests', () => {
 
-      beforeEach(async () => {
-        await tester.dropUsers();
-        sam = await tester.createUser('sam@mailinator.com', 'welcome@1');
-        tom = await tester.createAndLoginUser('tom@mailinator.com', 'welcome@1', { age: 40 });
-      });
-
       it('returns a not found if the user does not exist', async () => {
         const resp = await tester.get('/user/4', tom.token);
-        assert.equal(resp.statusCode, 404);
-      });
-
-      it('returns an error if get user is not the person logged in', async () => {
-        const resp = await tester.get(`/user/${sam.id}`, tom.token);
         assert.equal(resp.statusCode, 404);
       });
 

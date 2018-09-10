@@ -5,7 +5,6 @@ const nodemailer = require('nodemailer');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const moment = require('moment');
-const common = require('../lib/users/common');
 
 class WrestlerTester {
 
@@ -13,24 +12,24 @@ class WrestlerTester {
     this.request = supertest(app);
   }
 
+  // noinspection JSMethodCanBeStatic
   getDatabaseDriver() {
     return wrestler.db();
   }
 
+  // noinspection JSMethodCanBeStatic
   getEmailTransporter() {
     return _.get(wrestler.options(), 'email.transporter');
   }
 
+  // noinspection JSMethodCanBeStatic
   async dropUsers() {
     await wrestler.db().dropCollections('user');
   }
 
+  // noinspection JSMethodCanBeStatic
   async dropWidgets() {
     await wrestler.db().dropCollections('widget');
-  }
-
-  async drops(collections) {
-    await wrestler.db().dropCollections(collections);
   }
 
   async createUser(email, password, properties) {
@@ -47,6 +46,11 @@ class WrestlerTester {
     const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
     await wrestler.db().findOneAndUpdate('user', { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
     return user;
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async updateUser(email, doc) {
+    return await wrestler.db().findOneAndUpdate('user', { email }, doc);
   }
 
   async loginUser(email, password) {
@@ -120,21 +124,6 @@ class WrestlerTester {
   // noinspection JSMethodCanBeStatic
   async getUser(email) {
     return await wrestler.db().findOne('user', { email });
-  }
-
-  // noinspection JSMethodCanBeStatic
-  async createRootUser() {
-    await await wrestler.db().insertOne('user', { email: common.ROOT_EMAIL, password: common.ROOT_PASS });
-  }
-
-  async createAndLoginRootUser() {
-    await this.createRootUser();
-    return await this.loginUser(common.ROOT_EMAIL, common.ROOT_PASS);
-  }
-
-  // noinspection JSMethodCanBeStatic
-  async getRootUser() {
-    return await wrestler.db().findOne('user', { email: common.ROOT_EMAIL });
   }
 
 }

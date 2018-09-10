@@ -10,6 +10,11 @@ describe('confirming users', () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
+
   context('with default options', () => {
 
     describe('successfully confirming a user', () => {
@@ -19,7 +24,6 @@ describe('confirming users', () => {
       let password = 'welcome@1';
 
       beforeEach(async () => {
-        await tester.dropUsers();
         const createResp = await tester.post('/user', { email, password });
         assert.equal(createResp.statusCode, 201);
         const confirmationCode = await tester.getConfirmationCode(email);

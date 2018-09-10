@@ -9,12 +9,16 @@ describe('updating users', () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
+
   context('with default options', () => {
 
     let tom;
 
     beforeEach(async () => {
-      await tester.dropUsers();
       tom = await tester.createAndLoginUser('tom@mailinator.com', 'welcome@1');
     });
 
@@ -65,6 +69,18 @@ describe('updating users', () => {
 
     describe('sending bad requests', () => {
 
+      it('returns an error if tries to update email', async () => {
+        const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom40@mailinator.com' }, tom.token);
+        assert.equal(resp.status, 422);
+        assert.deepEqual(resp.body, { email: { messages: ['Cannot update email with a PATCH request'] }});
+      });
+
+      it('returns an error if the authentication token is incorrect', async () => {
+        const resp = await tester.patch(`/user/${tom.user.id}`, { password: 'welcome@3', age: 41 }, 'AAA');
+        assert.equal(resp.status, 401);
+        assert.deepEqual(resp.body, { base: { messages: ['Invalid authorization token'] } });
+      });
+
       it('fails if not authenticated', async () => {
         const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 });
         assert.equal(resp.statusCode, 401);
@@ -77,18 +93,6 @@ describe('updating users', () => {
         const loginResp = await tester.post('/user/login', { email: 'tom@mailinator.com', password: 'welcome@1' });
         assert.equal(loginResp.statusCode, 401);
         assert.deepEqual(loginResp.body.base.messages, ['Invalid email or password']);
-      });
-
-      it('returns an error if the email is invalid', async () => {
-        const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'welcome@3' }, tom.token);
-        assert.equal(resp.statusCode, 422);
-        assert.deepEqual(resp.body.email.messages, ['Email is invalid']);
-      });
-
-      it('returns an error if the email already exists', async () => {
-        const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom@mailinator.com' }, tom.token);
-        assert.equal(resp.statusCode, 422);
-        assert.deepEqual(resp.body.email.messages, ['Email already exists']);
       });
 
     });

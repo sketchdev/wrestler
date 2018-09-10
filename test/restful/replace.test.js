@@ -9,11 +9,12 @@ describe('replacing widgets', () => {
     tester = await new WrestlerTesterBuilder().build();
   });
 
-  context('with users disabled', () => {
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
 
-    beforeEach(async () => {
-      await tester.dropWidgets();
-    });
+  context('with users disabled', () => {
 
     describe('sending a good request', () => {
 

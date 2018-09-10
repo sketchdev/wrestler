@@ -9,10 +9,14 @@ describe('authenticating users', () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
+
   context('with default options', () => {
 
     beforeEach(async () => {
-      await tester.dropUsers();
       await tester.createUser('tom@mailinator.com', 'welcome@1');
     });
 

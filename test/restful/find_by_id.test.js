@@ -9,12 +9,16 @@ describe('finding widgets by id', () => {
     tester = await new WrestlerTesterBuilder().build();
   });
 
+  beforeEach(async () => {
+    await tester.dropWidgets();
+    await tester.dropUsers();
+  });
+
   context('with users disabled', () => {
 
     let widget;
 
     beforeEach(async () => {
-      await tester.dropWidgets();
       widget = await tester.createWidget({ name: 'coconut', company: 'acme' });
     });
 

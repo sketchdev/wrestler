@@ -6,6 +6,7 @@ const users = require('./lib/users');
 const validation = require('./lib/validation');
 const changeEmail = require('./lib/users/change_email');
 const email = require('./lib/email');
+const confirmChangeEmail = require('./lib/users/confirm_change_email');
 
 let dbDriver, effectiveOptions;
 
@@ -29,16 +30,6 @@ const setupDatabase = async () => {
       dbDriver = driver
     } else {
       dbDriver = await db.connect(effectiveOptions.database);
-    }
-  }
-};
-
-const setupRootUser = async () => {
-  const authorization = _.get(effectiveOptions, 'users.authorization');
-  if (authorization === 'roles') {
-    const rootUser = await dbDriver.findOne('user', { email: 'root' });
-    if (!rootUser) {
-      await dbDriver.insertOne('user', { email: 'root', password: 'wrestler', role: 'admin' });
     }
   }
 };
@@ -110,6 +101,7 @@ const userMiddleware = () => {
     users.handleForgotPassword,
     users.handleRecoverPassword,
     changeEmail.userChangeEmailHandler,
+    confirmChangeEmail.userConfirmChangeEmailHandler,
     users.handleUserGetRequest,
     users.handleUserPostRequest,
     users.handleUserPutRequest,
@@ -139,7 +131,6 @@ const errorMiddlware = () => {
 exports.setup = async (options) => {
   setupOptions(options);
   await setupDatabase();
-  await setupRootUser();
   const middlewares = [startMiddlware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddlware()];
   return [].concat.apply([], middlewares);
 };

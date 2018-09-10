@@ -13,7 +13,8 @@ describe('changing email', () => {
   });
 
   beforeEach(async () => {
-    await tester.drops('user', 'widget');
+    await tester.dropWidgets();
+    await tester.dropUsers();
   });
 
   context('with default options', () => {
