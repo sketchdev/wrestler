@@ -55,7 +55,10 @@ class WrestlerTester {
   }
 
   async loginUser(email, password) {
-    const { token } = (await this.request.post('/user/login').send({ email, password }).expect(200)).body;
+    const { token } = (await this.request.post('/user/login').send({ email, password })).body;
+    if (!token) {
+      throw new Error(`failed to login user: ${email}`);
+    }
     return token;
   }
 

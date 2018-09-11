@@ -8,9 +8,9 @@ require('dotenv').config();
   const api = await wrestler.setup({
     users: {
       allow: [
-        { roles: ['superadmin', 'admin'], resource: 'users', methods: '*' },
-        { roles: ['superadmin', 'admin'], resource: 'widgets', methods: '*' },
-        { roles: ['guest'], resource: 'users', methods: '*', onlyOwned: true },
+        { roles: ['appAdmin', 'admin'], resource: 'user', methods: '*' },
+        { roles: ['appAdmin', 'admin'], resource: 'widgets', methods: '*' },
+        { roles: ['guest'], resource: 'user', methods: '*', onlyOwned: true },
         { roles: ['guest'], resource: 'widgets', methods: ['GET'] },
         { roles: ['guest'], resource: 'widgets', methods: ['PUT', 'PATCH', 'POST', 'DELETE'], onlyOwned: true },
       ],
@@ -23,11 +23,11 @@ require('dotenv').config();
         // yes. did the user pass a valid authorization token?
         // note: the authorization function is executed after authentication
         if (req.session && req.session.user) {
-          // yes, is the user a superadmin or admin?
-          if (['superadmin', 'admin'].includes(req.session.user.role)) {
+          // yes, is the user a appAdmin or admin?
+          if (['appAdmin', 'admin'].includes(req.session.user.role)) {
             // yes, allow the user to create a new user as requested
           } else {
-            // no, the user is not a superadmin or admin.
+            // no, the user is not a appAdmin or admin.
             // return a forbidden status code because we don't want non-admins to be
             // able to create another user
             res.sendStatus(403);
@@ -41,8 +41,8 @@ require('dotenv').config();
     }
   });
 
-  // create a default superadmin user at startup
-  await wrestler.createUserIfNotExist({ email: 'demo@mailinator.com', password: 'welcome@1', role: 'superadmin' });
+  // create a default appAdmin user at startup
+  await wrestler.createUserIfNotExist({ email: 'demo@mailinator.com', password: 'welcome@1', role: 'appAdmin' });
 
   const app = express();
   app.set('trust proxy', 1); // trust first proxy

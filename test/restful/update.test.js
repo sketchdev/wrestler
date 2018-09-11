@@ -3,18 +3,18 @@ const { assert } = require('chai');
 
 describe('updating widgets', () => {
 
-  let tester;
-
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().build();
-  });
-
-  beforeEach(async () => {
-    await tester.dropWidgets();
-    await tester.dropUsers();
-  });
-
   context('with users disabled', () => {
+
+    let tester;
+
+    before(async () => {
+      tester = await new WrestlerTesterBuilder().build();
+    });
+
+    beforeEach(async () => {
+      await tester.dropWidgets();
+      await tester.dropUsers();
+    });
 
     describe('sending a good request', () => {
 
@@ -53,6 +53,65 @@ describe('updating widgets', () => {
       it('returns an error if the id is missing', async () => {
         const resp = await tester.patch('/widget', { name: 'coconuts' });
         assert.equal(resp.statusCode, 400);
+      });
+
+    });
+
+  });
+
+  context('with users enabled', () => {
+
+    let tester, bob, sam;
+
+    before(async () => {
+      tester = await new WrestlerTesterBuilder().enableUsers().build();
+    });
+
+    beforeEach(async () => {
+      await tester.dropWidgets();
+      await tester.dropUsers();
+      bob = await tester.createAndLoginUser('bob@mailinator.com', 'welcome@1');
+      sam = await tester.createAndLoginUser('sam@mailinator.com', 'welcome@1');
+    });
+
+    describe('setting the updatedBy property', () => {
+
+      let resp, widget;
+
+      beforeEach(async () => {
+        widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: 'brown' }, bob.token);
+        resp = await tester.patch(`/widget/${widget.id}`, { name: 'coconuts' }, bob.token);
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('sets the updatedBy property', async () => {
+        assert.equal(resp.body.updatedBy, bob.user.id);
+      });
+
+    });
+
+    describe('changing the updatedBy property', () => {
+
+      let resp, widget;
+
+      beforeEach(async () => {
+        widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: 'brown' }, bob.token);
+        resp = await tester.patch(`/widget/${widget.id}`, { name: 'coconuts' }, sam.token);
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.statusCode, 200);
+      });
+
+      it('sets the createdBy property', async () => {
+        assert.equal(resp.body.createdBy, bob.user.id);
+      });
+
+      it('sets the updatedBy property', async () => {
+        assert.equal(resp.body.updatedBy, sam.user.id);
       });
 
     });

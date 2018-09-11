@@ -40,7 +40,28 @@ describe('authorizing users', () => {
 
   context('with acl rules and authorization function', () => {
 
-    it('allows admins to create other admins');
+    let tester, rootToken, admin, guest;
+
+    beforeEach(async () => {
+      tester = await new WrestlerTesterBuilder().enableUsers({
+        allow: [
+          { roles: ['appAdmin', 'admin'], resource: 'user', methods: '*' },
+          // { roles: ['appAdmin', 'admin'], resource: 'widgets', methods: '*' },
+          // { roles: ['guest'], resource: 'user', methods: '*', onlyOwned: true },
+          // { roles: ['guest'], resource: 'widgets', methods: ['GET'] },
+          // { roles: ['guest'], resource: 'widgets', methods: ['PUT', 'PATCH', 'POST', 'DELETE'], onlyOwned: true },
+        ]
+      }).createUser({ email: 'root@mailinator.com', password: 'welcome@1', role: 'appAdmin' }).build();
+      rootToken = await tester.loginUser('root@mailinator.com', 'welcome@1');
+      // admin = await tester.createAndLoginUser('admin@mailinator.com', 'welcome@1', { role: 'admin' });
+      // guest = await tester.createAndLoginUser('guest@mailinator.com', 'welcome@1');
+    });
+
+    it('allows admins to create other admins', async () => {
+      const resp = await tester.post('/user', { email: 'admin@mailinator.com', password: 'welcome@1' }, rootToken);
+      assert.equal(resp.status, 201);
+    });
+
     it('allows guests to create themselves');
 
     it('allows creating widgets if you are an admin');
