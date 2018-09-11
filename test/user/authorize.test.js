@@ -58,8 +58,15 @@ describe('authorizing users', () => {
     });
 
     it('allows admins to create other admins', async () => {
-      const resp = await tester.post('/user', { email: 'admin@mailinator.com', password: 'welcome@1' }, rootToken);
+      const email = 'admin@mailinator.com';
+      const password = 'welcome@1';
+      const resp = await tester.post('/user', { email, password }, rootToken);
       assert.equal(resp.status, 201);
+      const confirmationCode = await tester.getConfirmationCode(email);
+      const confirmResp = await tester.post('/user/confirm', { email, confirmationCode });
+      assert.equal(confirmResp.status, 204);
+      const loginResp = await tester.post('/user/login', { email, password });
+      assert.equal(loginResp.status, 200);
     });
 
     it('allows guests to create themselves');
