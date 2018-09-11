@@ -1,3 +1,4 @@
+const common = require('../../lib/users/common');
 const { WrestlerTesterBuilder } = require('../setup');
 const { assert } = require('chai');
 
@@ -35,6 +36,32 @@ describe('authenticating users', () => {
       it('returns a login token', async () => {
         assert.exists(resp.body.token);
       });
+
+    });
+
+    describe('creating a user at startup', () => {
+
+      let tester;
+      const user = { email: 'root@mailinator.com', password: 'welcome@1', role: 'superadmin' };
+
+      beforeEach(async () => {
+        tester = await new WrestlerTesterBuilder().enableUsers().createUser(user).build();
+      });
+
+      it('authenticates the user', async () => {
+        const resp = await tester.post('/user/login', user);
+        assert.equal(resp.status, 200);
+      });
+
+      it('saves additional properties', async () => {
+        const dbUser = await tester.getDatabaseDriver().findOne(common.USER_COLLECTION_NAME, { email: user.email });
+        assert.equal(dbUser.role, user.role);
+      });
+
+      it('returns unauthorized if the password is incorrect', async () => {
+        const resp = await tester.post('/user/login', { email: user.email, password: 'abc' });
+        assert.equal(resp.status, 401);
+      })
 
     });
 

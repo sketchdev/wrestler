@@ -7,6 +7,7 @@ const validation = require('./lib/validation');
 const changeEmail = require('./lib/users/change_email');
 const email = require('./lib/email');
 const confirmChangeEmail = require('./lib/users/confirm_change_email');
+const common = require('./lib/users/common');
 
 let dbDriver, effectiveOptions;
 
@@ -133,6 +134,18 @@ exports.setup = async (options) => {
   await setupDatabase();
   const middlewares = [startMiddlware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddlware()];
   return [].concat.apply([], middlewares);
+};
+
+exports.createUserIfNotExist = async (user) => {
+  let userClone = { ...user };
+  const { email, password } = userClone;
+  delete userClone.password;
+  const dbUser = await dbDriver.findOne({ email });
+  if (!dbUser) {
+    userClone = await common.hashPassword(userClone, password);
+    userClone = Object.assign({}, userClone, { confirmed: true });
+    await dbDriver.insertOne(common.USER_COLLECTION_NAME, userClone);
+  }
 };
 
 exports.db = () => {

@@ -9,12 +9,12 @@ describe('authorizing users', () => {
 
     before(async () => {
       tester = await new WrestlerTesterBuilder().enableUsers({
-        authorization: (req, res, next) => {
+        authorization: (req, res) => {
           if (req.wrestler.resource === 'widget') {
-            if (req.wrestler.user && req.wrestler.user.email === 'tom@mailinator.com') return next();
-            return res.sendStatus(403);
+            if (!req.wrestler.user || req.wrestler.user.email !== 'tom@mailinator.com') {
+              res.sendStatus(403);
+            }
           }
-          next();
         }
       }).build();
     });
@@ -35,6 +35,27 @@ describe('authorizing users', () => {
       const resp = await tester.post('/widget', { name: 'watermelon', company: 'acme' }, sam.token);
       assert.equal(resp.statusCode, 403);
     });
+
+  });
+
+  context('with acl rules and authorization function', () => {
+
+    it('allows admins to create other admins');
+    it('allows guests to create themselves');
+
+    it('allows creating widgets if you are an admin');
+    it('prevents creating widgets if you are a guest');
+
+    it('allows reading widgets if you are an admin');
+    it('allows reading widgets if you are a guest');
+
+    it('allows guests to update themselves');
+    it('allows guests to read themselves');
+    it('allows guests to delete themselves');
+
+    it('prevents guests from reading others');
+    it('prevents guests from updating others');
+    it('prevents guests from deleting others');
 
   });
 

@@ -1,6 +1,7 @@
 const { WrestlerTesterBuilder } = require('../setup');
 const { assert } = require('chai');
 const sinon = require('sinon');
+const common = require('../../lib/users/common');
 
 describe('resending confirmation to users', () => {
 
@@ -42,12 +43,12 @@ describe('resending confirmation to users', () => {
       });
 
       it('generates a new confirmation code', async () => {
-        const user = await tester.getDatabaseDriver().findOne('user', { email });
+        const user = await tester.getDatabaseDriver().findOne(common.USER_COLLECTION_NAME, { email });
         assert.notEqual(user.confirmationCode, confirmationCode);
       });
 
       it('generates a new confirmation expiration', async () => {
-        const user = await tester.getDatabaseDriver().findOne('user', { email });
+        const user = await tester.getDatabaseDriver().findOne(common.USER_COLLECTION_NAME, { email });
         assert.notEqual(user.confirmationExpiresAt, confirmationExpiresAt);
       });
 
