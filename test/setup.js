@@ -92,8 +92,8 @@ class WrestlerTester {
     return await this.send('patch', path, body, token);
   }
 
-  async delete(path, body, token) {
-    return await this.send('delete', path, body, token);
+  async delete(path, token) {
+    return await this.send('delete', path, undefined, token);
   }
 
   async createWidget(properties, token) {
@@ -162,6 +162,9 @@ class WrestlerTesterBuilder {
   }
 
   async build() {
+    if (wrestler.db()) {
+      wrestler.db().dropCollections('widget', 'user');
+    }
     const api = await wrestler.setup(this.options);
     for (const user of this.users) {
       await wrestler.createUserIfNotExist(user);
