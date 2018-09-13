@@ -35,6 +35,11 @@ class WrestlerTester {
     await this.wrestler.db().clean('widget');
   }
 
+  // noinspection JSMethodCanBeStatic
+  async clean(collection) {
+    await this.wrestler.db().clean(collection);
+  }
+
   async createUser(email, password, properties) {
     const resp = await this.request.post('/user').send(Object.assign({ email, password }, properties));
     if (resp.status !== 201) {
@@ -136,10 +141,10 @@ class WrestlerTester {
 
 class WrestlerTesterBuilder {
 
-  constructor() {
+  constructor(options={}) {
     const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     const transporter = nodemailer.createTransport(transport);
-    this.options = { email: { transporter } };
+    this.options = Object.assign({}, { email: { transporter } }, options);
     this.users = [];
   }
 
