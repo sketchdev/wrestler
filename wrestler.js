@@ -18,7 +18,7 @@ class Wrestler {
   }
 
   setupOptions(options = {}) {
-    if (options.reload || !this.effectiveOptions) {
+    if (!this.effectiveOptions) {
       this.effectiveOptions = Object.assign({}, this.defaultOptions, options);
     }
   };

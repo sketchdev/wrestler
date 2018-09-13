@@ -138,7 +138,7 @@ class WrestlerTesterBuilder {
   constructor() {
     const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     const transporter = nodemailer.createTransport(transport);
-    this.options = { email: { transporter }, reload: true };
+    this.options = { email: { transporter } };
     this.users = [];
   }
 
