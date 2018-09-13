@@ -6,6 +6,7 @@ const uuid = require('uuid/v4');
 const _ = require('lodash');
 const moment = require('moment');
 const common = require('../lib/users/common');
+const util = require('util');
 
 class WrestlerTester {
 
@@ -37,7 +38,7 @@ class WrestlerTester {
   async createUser(email, password, properties) {
     const resp = await this.request.post('/user').send(Object.assign({ email, password }, properties));
     if (resp.status !== 201) {
-      throw new Error(`failed to create user: ${email}: ${resp.body}`);
+      throw new Error(`failed to create user: ${email}: ${util.inspect(resp.body)}`);
     }
     const user = (resp).body;
     await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: true });
