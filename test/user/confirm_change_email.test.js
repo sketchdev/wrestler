@@ -8,12 +8,9 @@ describe('confirm changing email', () => {
   const firstEmail = 'bob@mailinator.com';
   const password = 'welcome@1';
 
-  before(async () => {
+  beforeEach(async () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
     transporter = tester.getEmailTransporter();
-  });
-
-  beforeEach(async () => {
     await tester.dropWidgets();
     await tester.dropUsers();
   });

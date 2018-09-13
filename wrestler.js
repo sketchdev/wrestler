@@ -9,149 +9,173 @@ const email = require('./lib/email');
 const confirmChangeEmail = require('./lib/users/confirm_change_email');
 const common = require('./lib/users/common');
 
-let dbDriver, effectiveOptions;
+class Wrestler {
 
-const defaultOptions = {
-  pageSize: 20,
-  users: false,
-  restrictResources: false,
-  resources: {},
-};
-
-const setupOptions = (options={}) => {
-  if (options.reload || !effectiveOptions) {
-    effectiveOptions = Object.assign({}, defaultOptions, options);
+  constructor() {
+    this.dbDriver = undefined;
+    this.effectiveOptions = undefined;
+    this.defaultOptions = { pageSize: 20, users: false, restrictResources: false, resources: {} };
   }
-};
 
-const setupDatabase = async () => {
-  if (!dbDriver) {
-    const driver = _.get(effectiveOptions, 'database.driver');
-    if (driver && db.isValidDriver(driver)) {
-      dbDriver = driver
-    } else {
-      dbDriver = await db.connect(effectiveOptions.database);
+  setupOptions(options = {}) {
+    if (options.reload || !this.effectiveOptions) {
+      this.effectiveOptions = Object.assign({}, this.defaultOptions, options);
     }
-  }
-};
+  };
 
-const addOptions = (req, res, next) => {
-  req.wrestler = { options: effectiveOptions };
-  res.wrestler = {};
-  next();
-};
+  async setupDatabase() {
+    if (!this.dbDriver) {
+      const driver = _.get(this.effectiveOptions, 'database.driver');
+      if (driver && db.isValidDriver(driver)) {
+        this.dbDriver = driver
+      } else {
+        this.dbDriver = await db.connect(this.effectiveOptions.database);
+      }
+    }
+  };
 
-const addDatabase = async (req, res, next) => {
-  const databaseOptions = _.get(req, 'wrestler.options.database');
-  try {
-    await setupDatabase(databaseOptions);
-    req.wrestler.dbDriver = dbDriver;
+  addOptions(req, res, next) {
+    req.wrestler = { options: this.effectiveOptions };
+    res.wrestler = {};
     next();
-  } catch (err) {
-    next(err);
-  }
-};
+  };
 
-const parseRequest = async (req, res, next) => {
-  const method = req.method.toUpperCase();
-  const urlSplit = req.path.split('/');
-  urlSplit.shift(); // remove the leading forward slash
-  const resource = urlSplit.shift().toLowerCase();
-  const id = urlSplit.shift();
-  req.method = method;
-  req.wrestler.resource = resource;
-  req.wrestler.id = id;
-  next();
-};
-
-const transformErrors = (err, req, res, next) => {
-  if (res.wrestler.errors) {
-    let code = 400;
-    if (err instanceof errors.WhitelistError) {
-      code = 404;
-    } else if (err instanceof errors.ValidationError) {
-      code = 422;
-    } else if (err instanceof errors.LoginError) {
-      code = 401;
-    } else if (err instanceof errors.UnknownError) {
-      code = 500;
+  async addDatabase(req, res, next) {
+    const databaseOptions = _.get(req, 'wrestler.options.database');
+    try {
+      await this.setupDatabase(databaseOptions);
+      req.wrestler.dbDriver = this.dbDriver;
+      next();
+    } catch (err) {
+      next(err);
     }
-    res.status(code).json(res.wrestler.errors);
-  } else {
-    next(err);
+  };
+
+  // noinspection JSMethodCanBeStatic
+  async parseRequest(req, res, next) {
+    const method = req.method.toUpperCase();
+    const urlSplit = req.path.split('/');
+    urlSplit.shift(); // remove the leading forward slash
+    const resource = urlSplit.shift().toLowerCase();
+    const id = urlSplit.shift();
+    req.method = method;
+    req.wrestler.resource = resource;
+    req.wrestler.id = id;
+    next();
+  };
+
+  // noinspection JSMethodCanBeStatic
+  transformErrors(err, req, res, next) {
+    if (res.wrestler.errors) {
+      let code = 400;
+      if (err instanceof errors.WhitelistError) {
+        code = 404;
+      } else if (err instanceof errors.ValidationError) {
+        code = 422;
+      } else if (err instanceof errors.LoginError) {
+        code = 401;
+      } else if (err instanceof errors.UnknownError) {
+        code = 500;
+      }
+      res.status(code).json(res.wrestler.errors);
+    } else {
+      next(err);
+    }
+  };
+
+  startMiddleware() {
+    return [this.addOptions.bind(this), this.addDatabase.bind(this), this.parseRequest.bind(this)];
+  };
+
+  // noinspection JSMethodCanBeStatic
+  authMiddleware() {
+    return [users.checkAuthentication.bind(this), users.checkAuthorization.bind(this)]
+  };
+
+  validateMiddleware() {
+    return [
+      validation.whitelist.bind(this),
+      validation.validateRequest(this.effectiveOptions).bind(this),
+      validation.handleValidationErrors.bind(this)
+    ]
+  };
+
+  // noinspection JSMethodCanBeStatic
+  userMiddleware() {
+    return [
+      users.handleLogin.bind(this),
+      users.handleConfirmation.bind(this),
+      users.handleResendConfirmation.bind(this),
+      users.handleForgotPassword.bind(this),
+      users.handleRecoverPassword.bind(this),
+      changeEmail.userChangeEmailHandler.bind(this),
+      confirmChangeEmail.userConfirmChangeEmailHandler.bind(this),
+      users.handleUserGetRequest.bind(this),
+      users.handleUserPostRequest.bind(this),
+      users.handleUserPutRequest.bind(this),
+      users.handleUserPatchRequest.bind(this),
+      users.handleUserDeleteRequest.bind(this),
+    ];
+  };
+
+  // noinspection JSMethodCanBeStatic
+  restfulMiddleware() {
+    return [
+      restful.handleRestfulPostRequest.bind(this),
+      restful.handleRestfulGetRequest.bind(this),
+      restful.handleRestfulPutRequest.bind(this),
+      restful.handleRestfulPatchRequest.bind(this),
+      restful.handleRestfulDeleteRequest.bind(this),
+    ]
+  };
+
+  // noinspection JSMethodCanBeStatic
+  emailMiddleware() {
+    return [email.handleEmail.bind(this)];
+  };
+
+  errorMiddleware() {
+    return [this.transformErrors.bind(this)];
+  };
+
+  async setup(options) {
+    this.setupOptions(options);
+    await this.setupDatabase();
+  };
+
+  middleware() {
+    return [
+      this.startMiddleware(),
+      this.authMiddleware(),
+      this.validateMiddleware(),
+      this.userMiddleware(),
+      this.restfulMiddleware(),
+      this.emailMiddleware(),
+      this.errorMiddleware()
+    ];
   }
-};
 
-const startMiddleware = () => {
-  return [addOptions, addDatabase, parseRequest];
-};
+  async createUserIfNotExist(user) {
+    let userClone = { ...user };
+    const { email, password } = userClone;
+    delete userClone.password;
+    const dbUser = await this.dbDriver.findOne({ email });
+    if (!dbUser) {
+      userClone = await common.hashPassword(userClone, password);
+      userClone = Object.assign({}, userClone, { confirmed: true });
+      await this.dbDriver.insertOne(common.USER_COLLECTION_NAME, userClone);
+    }
+  };
 
-const authMiddleware = () => {
-  return [users.checkAuthentication, users.checkAuthorization]
-};
+  db() {
+    return this.dbDriver;
+  };
 
-const validateMiddleware = () => {
-  return [validation.whitelist, validation.validateRequest(effectiveOptions), validation.handleValidationErrors]
-};
+  options() {
+    return this.effectiveOptions;
+  };
 
-const userMiddleware = () => {
-  return [
-    users.handleLogin,
-    users.handleConfirmation,
-    users.handleResendConfirmation,
-    users.handleForgotPassword,
-    users.handleRecoverPassword,
-    changeEmail.userChangeEmailHandler,
-    confirmChangeEmail.userConfirmChangeEmailHandler,
-    users.handleUserGetRequest,
-    users.handleUserPostRequest,
-    users.handleUserPutRequest,
-    users.handleUserPatchRequest,
-    users.handleUserDeleteRequest,
-  ];
-};
+}
 
-const restfulMiddleware = () => {
-  return [
-    restful.handleRestfulPostRequest,
-    restful.handleRestfulGetRequest,
-    restful.handleRestfulPutRequest,
-    restful.handleRestfulPatchRequest,
-    restful.handleRestfulDeleteRequest,
-  ]
-};
+module.exports = Wrestler;
 
-const emailMiddleware = () => {
-  return [email.handleEmail];
-};
-
-const errorMiddleware = () => {
-  return [transformErrors];
-};
-
-exports.setup = async (options) => {
-  setupOptions(options);
-  await setupDatabase();
-  const middlewares = [startMiddleware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddleware()];
-  return [].concat.apply([], middlewares);
-};
-
-exports.createUserIfNotExist = async (user) => {
-  let userClone = { ...user };
-  const { email, password } = userClone;
-  delete userClone.password;
-  const dbUser = await dbDriver.findOne({ email });
-  if (!dbUser) {
-    userClone = await common.hashPassword(userClone, password);
-    userClone = Object.assign({}, userClone, { confirmed: true });
-    await dbDriver.insertOne(common.USER_COLLECTION_NAME, userClone);
-  }
-};
-
-exports.db = () => {
-  return dbDriver;
-};
-
-exports.options = () => {
-  return effectiveOptions;
-};

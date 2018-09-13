@@ -4,7 +4,8 @@ require('dotenv').config();
   const PORT = process.env.PORT || 3000;
   const express = require('express');
   const logger = require('morgan');
-  const wrestler = require('../wrestler');
+  const Wrestler = require('../wrestler');
+  const wrestler = new Wrestler();
   const api = await wrestler.setup({
     users: {
       allow: [
@@ -21,7 +22,7 @@ require('dotenv').config();
         // allow anybody to do anything with any foo that they own
         { roles: '*', resource: 'foo', methods: '*', onlyOwned: true },
       ],
-      authorization: (req, res) => {
+      authorization: (req) => {
         // only handle the POST /user scenario
         if (req.method !== 'POST' && req.wrestler.resource !== 'user') return;
         // force the `guest` role if either no user is authenticated, or a non-admin user is authenticated

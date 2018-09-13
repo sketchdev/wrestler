@@ -1,5 +1,5 @@
 const express = require('express');
-const wrestler = require('../wrestler');
+const Wrestler = require('../wrestler');
 const supertest = require('supertest');
 const nodemailer = require('nodemailer');
 const uuid = require('uuid/v4');
@@ -9,28 +9,29 @@ const common = require('../lib/users/common');
 
 class WrestlerTester {
 
-  constructor(app) {
+  constructor(app, wrestler) {
     this.request = supertest(app);
+    this.wrestler = wrestler;
   }
 
   // noinspection JSMethodCanBeStatic
   getDatabaseDriver() {
-    return wrestler.db();
+    return this.wrestler.db();
   }
 
   // noinspection JSMethodCanBeStatic
   getEmailTransporter() {
-    return _.get(wrestler.options(), 'email.transporter');
+    return _.get(this.wrestler.options(), 'email.transporter');
   }
 
   // noinspection JSMethodCanBeStatic
   async dropUsers() {
-    await wrestler.db().dropCollections(common.USER_COLLECTION_NAME);
+    await this.wrestler.db().dropCollections(common.USER_COLLECTION_NAME);
   }
 
   // noinspection JSMethodCanBeStatic
   async dropWidgets() {
-    await wrestler.db().dropCollections('widget');
+    await this.wrestler.db().dropCollections('widget');
   }
 
   async createUser(email, password, properties) {
@@ -39,19 +40,19 @@ class WrestlerTester {
       throw new Error(`failed to create user: ${email}`);
     }
     const user = (resp).body;
-    await wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: true });
+    await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: true });
     return user;
   }
 
   async createUserWithExpiredConfirmation(email, password, properties) {
     const user = (await this.request.post('/user').send(Object.assign({ email, password }, properties)).expect(201)).body;
-    await wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
+    await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: false, confirmationExpiresAt: new Date(2000, 1, 1) });
     return user;
   }
 
   // noinspection JSMethodCanBeStatic
   async updateUser(email, doc) {
-    return await wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, doc);
+    return await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, doc);
   }
 
   async loginUser(email, password) {
@@ -102,32 +103,32 @@ class WrestlerTester {
 
   // noinspection JSMethodCanBeStatic
   async getConfirmationCode(email) {
-    const user = await wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
+    const user = await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
     return user.confirmationCode;
   }
 
   // noinspection JSMethodCanBeStatic
   async getConfirmationExpiresAt(email) {
-    const user = await wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
+    const user = await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
     return user.confirmationExpiresAt;
   }
 
   // TODO: dry up getConfirmationCode, getRecoveryCode, getConfirmationExpiresAt with a getUser method
   // noinspection JSMethodCanBeStatic
   async getRecoveryCode(email) {
-    const user = await wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
+    const user = await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
     return user.recoveryCode;
   }
 
   // noinspection JSMethodCanBeStatic
   async expireRecoveryCode(email) {
     const recoveryExpiresAt = moment().subtract(1, 'day').toDate();
-    await wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { recoveryExpiresAt });
+    await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { recoveryExpiresAt });
   }
 
   // noinspection JSMethodCanBeStatic
   async getUser(email) {
-    return await wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
+    return await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
   }
 
 }
@@ -162,18 +163,16 @@ class WrestlerTesterBuilder {
   }
 
   async build() {
-    if (wrestler.db()) {
-      wrestler.db().dropCollections('widget', 'user');
-    }
-    const api = await wrestler.setup(this.options);
+    const wrestler = new Wrestler();
+    await wrestler.setup(this.options);
     for (const user of this.users) {
       await wrestler.createUserIfNotExist(user);
     }
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.use(api);
-    return new WrestlerTester(app, this.options);
+    app.use(wrestler.middleware());
+    return new WrestlerTester(app, wrestler);
   }
 
 }

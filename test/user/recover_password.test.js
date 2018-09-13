@@ -9,12 +9,9 @@ describe('recovering user passwords', () => {
   let password = 'welcome@1';
   let newPassword = 'welcome@2';
 
-  before(async () => {
+  beforeEach(async () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
     dbDriver = tester.getDatabaseDriver();
-  });
-
-  beforeEach(async () => {
     await tester.dropUsers();
     await tester.createUser(email, password);
     const forgotResp = await tester.post('/user/forgot-password', { email });
