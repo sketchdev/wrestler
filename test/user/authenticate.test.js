@@ -88,7 +88,7 @@ describe('authenticating users', () => {
       });
 
       it('returns an error if the jwt user is not found', async () => {
-        const token = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvZHkuZnJlZGVyaWNrQG91dGxvb2suY29tIiwiY29uZmlybWF0aW9uRXhwaXJlc0F0IjoiMjAxOC0wOS0xM1QxOTo0MTowMS4zOTdaIiwiY3JlYXRlZEF0IjoiMjAxOC0wOS0xM1QxODo0MTowMS4zOTlaIiwidXBkYXRlZEF0IjoiMjAxOC0wOS0xM1QxODo0MTowMS4zOTlaIiwiaWQiOiJGdU9lRHpLdzZiV1lrTWN4IiwiaWF0IjoxNTM2ODY0MTQ5LCJleHAiOjE1MzY4Njc3NDl9.yRxDmLwNCnRfz2-hn34pUhmOV7KkbjWzm_5-lZGsYPE1eR05_LowlCRXnb77lwflsckZfKwq9mvfy-f1Ap7Jvg';
+        const token = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvZHlAbWFpbGluYXRvci5jb20iLCJjb25maXJtYXRpb25FeHBpcmVzQXQiOiIyMDE4LTA5LTEzVDE5OjU2OjI0Ljg4M1oiLCJjcmVhdGVkQXQiOiIyMDE4LTA5LTEzVDE4OjU2OjI0Ljg4NVoiLCJ1cGRhdGVkQXQiOiIyMDE4LTA5LTEzVDE4OjU2OjI0Ljg4NVoiLCJpZCI6InNmVW9GQjNVazRLWWhLdHAiLCJpYXQiOjE1MzY4NjUwNjIsImV4cCI6MTUzNjg2ODY2Mn0.LQqLnj-7aCAE4QwDW6DtKEW0LijWv8Vt5NpSBA8T2mwrFZNJP5UgzcSJ7Ux6YMuVDMJDz-SXDgZ1lwZa-O2_yg';
         const resp = await tester.get('/widget', token);
         assert.equal(resp.status, 403);
       });
