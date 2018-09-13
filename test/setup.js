@@ -26,12 +26,12 @@ class WrestlerTester {
 
   // noinspection JSMethodCanBeStatic
   async dropUsers() {
-    await this.wrestler.db().dropCollections(common.USER_COLLECTION_NAME);
+    await this.wrestler.db().clean(common.USER_COLLECTION_NAME);
   }
 
   // noinspection JSMethodCanBeStatic
   async dropWidgets() {
-    await this.wrestler.db().dropCollections('widget');
+    await this.wrestler.db().clean('widget');
   }
 
   async createUser(email, password, properties) {
