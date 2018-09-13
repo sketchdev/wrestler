@@ -6,11 +6,8 @@ describe('authenticating users', () => {
 
   let tester;
 
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().enableUsers().build();
-  });
-
   beforeEach(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     await tester.dropWidgets();
     await tester.dropUsers();
   });

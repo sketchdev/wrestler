@@ -5,7 +5,7 @@ describe('replacing users', () => {
 
   let tester;
 
-  before(async () => {
+  beforeEach(async () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
   });
 

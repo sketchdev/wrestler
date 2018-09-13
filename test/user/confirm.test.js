@@ -6,11 +6,8 @@ describe('confirming users', () => {
 
   let tester;
 
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().enableUsers().build();
-  });
-
   beforeEach(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     await tester.dropWidgets();
     await tester.dropUsers();
   });
@@ -77,11 +74,8 @@ describe('confirming users', () => {
       const email = 'bob@mailinator.com';
       const password = 'welcome@1';
 
-      before(async () => {
-        dbDriver = tester.getDatabaseDriver();
-      });
-
       beforeEach(async () => {
+        dbDriver = tester.getDatabaseDriver();
         sinon.stub(dbDriver, 'findOneAndUpdate').rejects('oops');
         await tester.dropUsers();
         const createResp = await tester.post('/user', { email, password });

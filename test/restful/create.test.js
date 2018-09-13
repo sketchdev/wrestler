@@ -7,11 +7,8 @@ describe('creating widgets', () => {
 
     let tester;
 
-    before(async () => {
-      tester = await new WrestlerTesterBuilder().build();
-    });
-
     beforeEach(async () => {
+      tester = await new WrestlerTesterBuilder().build();
       await tester.dropWidgets();
       await tester.dropUsers();
     });
@@ -63,11 +60,8 @@ describe('creating widgets', () => {
 
     let tester, bob;
 
-    before(async () => {
-      tester = await new WrestlerTesterBuilder().enableUsers().build();
-    });
-
     beforeEach(async () => {
+      tester = await new WrestlerTesterBuilder().enableUsers().build();
       await tester.dropWidgets();
       await tester.dropUsers();
       bob = await tester.createAndLoginUser('bob@mailinator.com', 'welcome@1');

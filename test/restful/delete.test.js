@@ -5,11 +5,8 @@ describe('deleting widgets', () => {
 
   let tester;
 
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().build();
-  });
-
   beforeEach(async () => {
+    tester = await new WrestlerTesterBuilder().build();
     await tester.dropWidgets();
     await tester.dropUsers();
   });

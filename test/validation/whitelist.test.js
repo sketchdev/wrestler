@@ -5,14 +5,8 @@ describe('whitelisting resources', () => {
 
   let tester;
 
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().enableValidation({
-      whitelist: true,
-      resources: { widget: true }
-    }).build();
-  });
-
   beforeEach(async () => {
+    tester = await new WrestlerTesterBuilder().enableValidation({ whitelist: true, resources: { widget: true } }).build();
     await tester.dropWidgets();
   });
 

@@ -6,13 +6,10 @@ describe('recovering passwords', () => {
 
   let tester, transporter, dbDriver;
 
-  before(async () => {
+  beforeEach(async () => {
     tester = await new WrestlerTesterBuilder().enableUsers().build();
     transporter = tester.getEmailTransporter();
     dbDriver = tester.getDatabaseDriver();
-  });
-
-  beforeEach(async () => {
     await tester.dropUsers();
   });
 

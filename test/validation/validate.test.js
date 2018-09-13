@@ -5,7 +5,7 @@ describe('validating resources', () => {
 
   let tester;
 
-  before(async () => {
+  beforeEach(async () => {
     tester = await new WrestlerTesterBuilder().enableValidation({
       resources: {
         widget: {
@@ -17,9 +17,6 @@ describe('validating resources', () => {
         }
       }
     }).build();
-  });
-
-  beforeEach(async () => {
     await tester.dropWidgets();
   });
 

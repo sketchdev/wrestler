@@ -7,7 +7,7 @@ describe('authorizing users', () => {
 
     let tester;
 
-    before(async () => {
+    beforeEach(async () => {
       tester = await new WrestlerTesterBuilder().enableUsers({
         authorization: (req, res) => {
           if (req.wrestler.resource === 'widget') {
@@ -17,9 +17,6 @@ describe('authorizing users', () => {
           }
         }
       }).build();
-    });
-
-    beforeEach(async () => {
       await tester.dropUsers();
       await tester.dropWidgets();
     });

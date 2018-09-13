@@ -12,12 +12,9 @@ describe('resending confirmation to users', () => {
       let tester, transporter, resp, confirmationCode, confirmationExpiresAt;
       const email = 'bob@mailinator.com';
 
-      before(async () => {
+      beforeEach(async () => {
         tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
-      });
-
-      beforeEach(async () => {
         await tester.dropUsers();
         await tester.createUser(email, 'welcome@1');
         confirmationCode = await tester.getConfirmationCode(email);
@@ -58,12 +55,9 @@ describe('resending confirmation to users', () => {
 
       let tester, transporter, resp;
 
-      before(async () => {
+      beforeEach(async () => {
         tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
-      });
-
-      beforeEach(async () => {
         await tester.dropUsers();
         sinon.spy(transporter, 'sendMail');
         resp = await tester.post('/user/resend-confirm', { email: 'nobody@mailinator.com' });
@@ -91,12 +85,9 @@ describe('resending confirmation to users', () => {
 
       let tester, transporter, resp;
 
-      before(async () => {
+      beforeEach(async () => {
         tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
-      });
-
-      beforeEach(async () => {
         await tester.dropUsers();
         sinon.spy(transporter, 'sendMail');
         resp = await tester.post('/user/resend-confirm', {});
@@ -125,13 +116,10 @@ describe('resending confirmation to users', () => {
       let tester, transporter, dbDriver, resp;
       const email = 'bob@mailinator.com';
 
-      before(async () => {
+      beforeEach(async () => {
         tester = await new WrestlerTesterBuilder().enableUsers().build();
         transporter = tester.getEmailTransporter();
         dbDriver = tester.getDatabaseDriver();
-      });
-
-      beforeEach(async () => {
         await tester.dropUsers();
         await tester.createUser(email, 'welcome@1');
         sinon.spy(transporter, 'sendMail');
