@@ -82,7 +82,7 @@ const transformErrors = (err, req, res, next) => {
   }
 };
 
-const startMiddlware = () => {
+const startMiddleware = () => {
   return [addOptions, addDatabase, parseRequest];
 };
 
@@ -125,14 +125,14 @@ const emailMiddleware = () => {
   return [email.handleEmail];
 };
 
-const errorMiddlware = () => {
+const errorMiddleware = () => {
   return [transformErrors];
 };
 
 exports.setup = async (options) => {
   setupOptions(options);
   await setupDatabase();
-  const middlewares = [startMiddlware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddlware()];
+  const middlewares = [startMiddleware(), authMiddleware(), validateMiddleware(), userMiddleware(), restfulMiddleware(), emailMiddleware(), errorMiddleware()];
   return [].concat.apply([], middlewares);
 };
 
