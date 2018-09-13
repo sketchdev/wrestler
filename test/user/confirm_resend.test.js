@@ -31,7 +31,7 @@ describe('resending confirmation to users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns an empty body', async () => {
@@ -74,7 +74,7 @@ describe('resending confirmation to users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns an empty body', async () => {
@@ -107,7 +107,7 @@ describe('resending confirmation to users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns an empty body', async () => {
@@ -145,7 +145,7 @@ describe('resending confirmation to users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 500);
+        assert.equal(resp.status, 500);
       });
 
       it('skips sending an email', async () => {

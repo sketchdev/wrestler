@@ -15,7 +15,7 @@ describe('replacing users', () => {
       await tester.dropUsers();
       const tom = await tester.createAndLoginUser('tom@mailinator.com', 'welcome@1');
       const resp = await tester.put(`/user/${tom.user.id}`, { age: 44 }, tom.token);
-      assert.equal(resp.statusCode, 405);
+      assert.equal(resp.status, 405);
     });
 
   });

@@ -36,7 +36,7 @@ describe('changing email', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns an empty body', async () => {
@@ -70,25 +70,25 @@ describe('changing email', () => {
         const newEmail = 'sam@mailinator.com';
         await tester.createAndLoginUser(newEmail, 'welcome@1');
         const resp = await tester.post('/user/change-email', { email: newEmail }, user.token);
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
       });
 
       it('returns an error if the email is missing', async () => {
         const resp = await tester.post('/user/change-email', { newwEmail: '' }, user.token);
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
       });
 
       it('returns an error if the email is empty', async () => {
         const resp = await tester.post('/user/change-email', { email: '' }, user.token);
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
       });
 
       it('returns an error if the email is invalid', async () => {
         const resp = await tester.post('/user/change-email', { email: 'sam' }, user.token);
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email is invalid'] } });
       });
 
@@ -96,7 +96,7 @@ describe('changing email', () => {
         const dbDriver = tester.getDatabaseDriver();
         sinon.stub(dbDriver, 'findOneAndUpdate').rejects('oops');
         const resp = await tester.post('/user/change-email', { email: 'good@mailinator.com' }, user.token);
-        assert.equal(resp.statusCode, 500);
+        assert.equal(resp.status, 500);
         assert.deepEqual(resp.body, { base: { messages: ['Unexpected error'] } });
         dbDriver.findOneAndUpdate.restore();
       });

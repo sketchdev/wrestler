@@ -27,13 +27,13 @@ describe('authorizing users', () => {
     it('creates a widget if authorized', async () => {
       const tom = await tester.createAndLoginUser('tom@mailinator.com', 'welcome@1');
       const resp = await tester.post('/widget', { name: 'watermelon', company: 'acme' }, tom.token);
-      assert.equal(resp.statusCode, 201);
+      assert.equal(resp.status, 201);
     });
 
     it('returns forbidden if not authorized to create a widget', async () => {
       const sam = await tester.createAndLoginUser('sam@mailinator.com', 'welcome@1');
       const resp = await tester.post('/widget', { name: 'watermelon', company: 'acme' }, sam.token);
-      assert.equal(resp.statusCode, 403);
+      assert.equal(resp.status, 403);
     });
 
   });
@@ -58,7 +58,7 @@ describe('authorizing users', () => {
           // allow anybody to do anything with any foo that they own
           { roles: '*', resource: 'foo', methods: '*', onlyOwned: true },
         ],
-        authorization: (req, res) => {
+        authorization: (req) => {
           // only handle the POST /user scenario
           if (req.method !== 'POST' && req.wrestler.resource !== 'user') return;
           // force the `guest` role if either no user is authenticated, or a non-admin user is authenticated

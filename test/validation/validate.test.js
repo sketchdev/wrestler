@@ -25,24 +25,24 @@ describe('validating resources', () => {
 
   it('creates a widget', async () => {
     const resp = await tester.post('/widget', { name: 'coconut', company: 'acme' });
-    assert.equal(resp.statusCode, 201);
+    assert.equal(resp.status, 201);
   });
 
   it('returns an error when name is too short', async () => {
     const resp = await tester.post('/widget', { name: 'c' });
-    assert.equal(resp.statusCode, 422);
+    assert.equal(resp.status, 422);
     assert.deepEqual(resp.body, { name: { messages: ['must be at least two characters'] } });
   });
 
   it('returns an error when name is missing', async () => {
     const resp = await tester.post('/widget', { company: 'acme' });
-    assert.equal(resp.statusCode, 422);
+    assert.equal(resp.status, 422);
     assert.deepEqual(resp.body, { name: { messages: ['must be at least two characters', 'required'] } });
   });
 
   it('returns an error when name is empty', async () => {
     const resp = await tester.post('/widget', { name: '', company: 'acme' });
-    assert.equal(resp.statusCode, 422);
+    assert.equal(resp.status, 422);
     assert.deepEqual(resp.body, { name: { messages: ['must be at least two characters', 'required'] } });
   });
 

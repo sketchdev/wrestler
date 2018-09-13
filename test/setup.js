@@ -37,7 +37,7 @@ class WrestlerTester {
   async createUser(email, password, properties) {
     const resp = await this.request.post('/user').send(Object.assign({ email, password }, properties));
     if (resp.status !== 201) {
-      throw new Error(`failed to create user: ${email}`);
+      throw new Error(`failed to create user: ${email}: ${resp.body}`);
     }
     const user = (resp).body;
     await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: true });

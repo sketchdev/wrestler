@@ -25,7 +25,7 @@ describe('creating widgets', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 201);
+        assert.equal(resp.status, 201);
       });
 
       it('returns an id', async () => {
@@ -52,7 +52,7 @@ describe('creating widgets', () => {
 
       it('returns a bad request when trying to post with a value after the resource', async () => {
         const resp = await tester.post('/user/login', { name: 'coconut', company: 'acme' });
-        assert.equal(resp.statusCode, 400);
+        assert.equal(resp.status, 400);
       });
 
     });

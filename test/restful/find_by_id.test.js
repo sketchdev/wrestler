@@ -31,7 +31,7 @@ describe('finding widgets by id', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns the widget', async () => {
@@ -44,7 +44,7 @@ describe('finding widgets by id', () => {
 
       it('returns the correct status code if not found', async () => {
         const resp = await tester.get(`/widget/4`);
-        assert.equal(resp.statusCode, 404);
+        assert.equal(resp.status, 404);
       });
 
     });

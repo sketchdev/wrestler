@@ -23,18 +23,18 @@ describe('deleting widgets', () => {
       beforeEach(async () => {
         widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: 'brown' });
         const findResp = await tester.get(`/widget/${widget.id}`);
-        assert.equal(findResp.statusCode, 200);
+        assert.equal(findResp.status, 200);
         assert.deepEqual(findResp.body, widget);
         resp = await tester.delete(`/widget/${widget.id}`);
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns not found if searched for after delete', async () => {
         const findResp = await tester.get(`/widget/${widget.id}`);
-        assert.equal(findResp.statusCode, 404);
+        assert.equal(findResp.status, 404);
       });
 
     });
@@ -43,7 +43,7 @@ describe('deleting widgets', () => {
 
       it('returns an error if the id is missing', async () => {
         const resp = await tester.delete('/widget');
-        assert.equal(resp.statusCode, 400);
+        assert.equal(resp.status, 400);
       });
 
     });

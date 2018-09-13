@@ -25,13 +25,13 @@ describe('confirming users', () => {
 
       beforeEach(async () => {
         const createResp = await tester.post('/user', { email, password });
-        assert.equal(createResp.statusCode, 201);
+        assert.equal(createResp.status, 201);
         const confirmationCode = await tester.getConfirmationCode(email);
         resp = await tester.post('/user/confirm', { email, confirmationCode });
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 204);
+        assert.equal(resp.status, 204);
       });
 
       it('returns an empty body', async () => {
@@ -44,7 +44,7 @@ describe('confirming users', () => {
 
       it('returns an error if the user is not found', async () => {
         const resp = await tester.post('/user/confirm', { email: 'test@mailinator.com' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Invalid email'] }});
       });
 
@@ -54,7 +54,7 @@ describe('confirming users', () => {
         const password = 'welcome@1';
         await tester.createUser(email, password);
         const resp = await tester.post('/user/confirm', { email, confirmationCode: 'a' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { confirmationCode: { messages: ['Invalid confirmation code'] }});
       });
 
@@ -65,7 +65,7 @@ describe('confirming users', () => {
         await tester.createUserWithExpiredConfirmation(email, password);
         const confirmationCode = await tester.getConfirmationCode(email);
         const resp = await tester.post('/user/confirm', { email, confirmationCode });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { confirmationCode: { messages: ['Expired confirmation code'] }});
       });
 
@@ -85,7 +85,7 @@ describe('confirming users', () => {
         sinon.stub(dbDriver, 'findOneAndUpdate').rejects('oops');
         await tester.dropUsers();
         const createResp = await tester.post('/user', { email, password });
-        assert.equal(createResp.statusCode, 201);
+        assert.equal(createResp.status, 201);
         const confirmationCode = await tester.getConfirmationCode(email);
         resp = await tester.post('/user/confirm', { email, confirmationCode });
       });
@@ -95,7 +95,7 @@ describe('confirming users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 500);
+        assert.equal(resp.status, 500);
       });
 
       it('returns an error response', async () => {

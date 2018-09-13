@@ -30,7 +30,7 @@ describe('authenticating users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns a login token', async () => {
@@ -75,19 +75,19 @@ describe('authenticating users', () => {
 
       it('returns an error if the email is not found', async () => {
         const resp = await tester.post('/user/login', { email: 'thomas@mailinator.com', password: 'welcome@2' });
-        assert.equal(resp.statusCode, 401);
+        assert.equal(resp.status, 401);
         assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
       });
 
       it('returns an error if credentials are incorrect', async () => {
         const resp = await tester.post('/user/login', { email: 'tom@mailinator.com', password: 'welcome@2' });
-        assert.equal(resp.statusCode, 401);
+        assert.equal(resp.status, 401);
         assert.deepEqual(resp.body, { base: { messages: ['Invalid email or password'] } });
       });
 
       it('requires authentication to other resources', async () => {
         const resp = await tester.get('/widget');
-        assert.equal(resp.statusCode, 401);
+        assert.equal(resp.status, 401);
       });
 
     });

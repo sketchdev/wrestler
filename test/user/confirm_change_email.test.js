@@ -40,7 +40,7 @@ describe('confirm changing email', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns an empty body', async () => {

@@ -5,11 +5,8 @@ describe('updating users', () => {
 
   let tester;
 
-  before(async () => {
-    tester = await new WrestlerTesterBuilder().enableUsers().build();
-  });
-
   beforeEach(async () => {
+    tester = await new WrestlerTesterBuilder().enableUsers().build();
     await tester.dropWidgets();
     await tester.dropUsers();
   });
@@ -31,7 +28,7 @@ describe('updating users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns the id', async () => {
@@ -83,15 +80,15 @@ describe('updating users', () => {
 
       it('fails if not authenticated', async () => {
         const resp = await tester.patch(`/user/${tom.user.id}`, { email: 'tom40@mailinator.com', password: 'welcome@2', age: 41 });
-        assert.equal(resp.statusCode, 401);
+        assert.equal(resp.status, 401);
       });
 
       it('returns an error with the old password if changed', async () => {
         const updateResp = await tester.patch(`/user/${tom.user.id}`, { password: 'welcome@3' }, tom.token);
-        assert.equal(updateResp.statusCode, 200);
+        assert.equal(updateResp.status, 200);
 
         const loginResp = await tester.post('/user/login', { email: 'tom@mailinator.com', password: 'welcome@1' });
-        assert.equal(loginResp.statusCode, 401);
+        assert.equal(loginResp.status, 401);
         assert.deepEqual(loginResp.body.base.messages, ['Invalid email or password']);
       });
 

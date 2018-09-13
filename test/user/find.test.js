@@ -28,7 +28,7 @@ describe('finding users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns an array of one item', async () => {
@@ -60,7 +60,7 @@ describe('finding users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('returns user details', async () => {
@@ -83,7 +83,7 @@ describe('finding users', () => {
 
       it('returns a not found if the user does not exist', async () => {
         const resp = await tester.get('/user/4', tom.token);
-        assert.equal(resp.statusCode, 404);
+        assert.equal(resp.status, 404);
       });
 
     });

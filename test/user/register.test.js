@@ -30,7 +30,7 @@ describe('registering users', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 201);
+        assert.equal(resp.status, 201);
       });
 
       it('returns a location header', async () => {
@@ -60,7 +60,7 @@ describe('registering users', () => {
 
       it('rejects authentication', async () => {
         const resp = await tester.post('/user/login', { email, password });
-        assert.equal(resp.statusCode, 401);
+        assert.equal(resp.status, 401);
       });
 
       it('blocks access to resources until account is confirmed');
@@ -77,25 +77,25 @@ describe('registering users', () => {
       it('returns an error if the user email already exists', async () => {
         await tester.createUser('tom@mailinator.com', 'welcome@1');
         const resp = await tester.post('/user', { email: 'tom@mailinator.com', password: 'welcome@1' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email already exists'] } });
       });
 
       it('returns an error if no email is supplied', async () => {
         const resp = await tester.post('/user', { emale: 'bob@mailinator.com', password: 'welcome@1' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email is required'] } });
       });
 
       it('returns an error if no password is supplied', async () => {
         const resp = await tester.post('/user', { email: 'bob@mailinator.com', passsword: 'welcome@1' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
       });
 
       it('returns an error if the email is invalid', async () => {
         const resp = await tester.post('/user', { email: 'bob@mailinator', password: 'welcome@1' });
-        assert.equal(resp.statusCode, 422);
+        assert.equal(resp.status, 422);
         assert.deepEqual(resp.body, { email: { messages: ['Email is invalid'] } });
       });
 

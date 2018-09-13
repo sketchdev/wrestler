@@ -26,7 +26,7 @@ describe('replacing widgets', () => {
       });
 
       it('returns the correct status code', async () => {
-        assert.equal(resp.statusCode, 200);
+        assert.equal(resp.status, 200);
       });
 
       it('replaces the properties', async () => {
@@ -56,7 +56,7 @@ describe('replacing widgets', () => {
 
       it('returns an error if the id is missing', async () => {
         const resp = await tester.put('/widget', { name: 'coconuts' });
-        assert.equal(resp.statusCode, 400);
+        assert.equal(resp.status, 400);
       });
 
     });

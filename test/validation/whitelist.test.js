@@ -18,12 +18,12 @@ describe('whitelisting resources', () => {
 
   it('allows creating a widget', async () => {
     const resp = await tester.post('/widget', { name: 'coconut', company: 'acme' });
-    assert.equal(resp.statusCode, 201);
+    assert.equal(resp.status, 201);
   });
 
   it('rejects creating a thing', async () => {
     const resp = await tester.post('/thing', { title: 'something' });
-    assert.equal(resp.statusCode, 404);
+    assert.equal(resp.status, 404);
   });
 
 });
