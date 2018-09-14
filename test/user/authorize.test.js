@@ -225,6 +225,24 @@ describe('authorizing users', () => {
         assert.equal(updateResp.status, 404);
       });
 
+      it('prevents guests from reading other guests foos by id', async () => {
+        const createResp = await tester.post('/foo', { bar: 'bar' }, guest1.token);
+        assert.equal(createResp.status, 201);
+        const getResp = await tester.get(`/foo/${createResp.body.id}`, guest2.token);
+        assert.equal(getResp.status, 404);
+      });
+
+      it('prevents guests from reading other guests foos but they can read their own', async () => {
+        let createResp = await tester.post('/foo', { bar: 'bar' }, guest1.token);
+        assert.equal(createResp.status, 201);
+        createResp = await tester.post('/foo', { bar: 'baz' }, guest2.token);
+        assert.equal(createResp.status, 201);
+        const getResp = await tester.get(`/foo`, guest2.token);
+        assert.equal(getResp.status, 200);
+        assert.equal(getResp.body.length, 1);
+        assert.deepEqual(getResp.body[0].bar, 'baz');
+      });
+
     });
 
   });

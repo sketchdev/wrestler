@@ -1,6 +1,10 @@
 const common = require('../../lib/users/common');
 const { WrestlerTesterBuilder } = require('../setup');
 const { assert } = require('chai');
+const util = require('util');
+const jwt = require('jsonwebtoken');
+const jwtSign = util.promisify(jwt.sign);
+const JWT_SECRET_KEY = require('../../lib/users/common').JWT_SECRET_KEY;
 
 describe('authenticating users', () => {
 
@@ -88,7 +92,7 @@ describe('authenticating users', () => {
       });
 
       it('returns an error if the jwt user is not found', async () => {
-        const token = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvZHlAbWFpbGluYXRvci5jb20iLCJjb25maXJtYXRpb25FeHBpcmVzQXQiOiIyMDE4LTA5LTEzVDE5OjU2OjI0Ljg4M1oiLCJjcmVhdGVkQXQiOiIyMDE4LTA5LTEzVDE4OjU2OjI0Ljg4NVoiLCJ1cGRhdGVkQXQiOiIyMDE4LTA5LTEzVDE4OjU2OjI0Ljg4NVoiLCJpZCI6InNmVW9GQjNVazRLWWhLdHAiLCJpYXQiOjE1MzY4NjUwNjIsImV4cCI6MTUzNjg2ODY2Mn0.LQqLnj-7aCAE4QwDW6DtKEW0LijWv8Vt5NpSBA8T2mwrFZNJP5UgzcSJ7Ux6YMuVDMJDz-SXDgZ1lwZa-O2_yg';
+        const token = await jwtSign({ id: 'blah' }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
         const resp = await tester.get('/widget', token);
         assert.equal(resp.status, 403);
       });
