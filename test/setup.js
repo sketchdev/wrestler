@@ -114,6 +114,12 @@ class WrestlerTester {
   }
 
   // noinspection JSMethodCanBeStatic
+  async getInviteCode(email) {
+    const user = await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
+    return user.inviteCode;
+  }
+
+  // noinspection JSMethodCanBeStatic
   async getConfirmationExpiresAt(email) {
     const user = await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
     return user.confirmationExpiresAt;

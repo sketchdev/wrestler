@@ -72,6 +72,8 @@ class Wrestler {
         code = 404;
       } else if (err instanceof errors.ValidationError) {
         code = 422;
+      } else if (err instanceof errors.ForbiddenError) {
+        code = 403;
       } else if (err instanceof errors.LoginError) {
         code = 401;
       } else if (err instanceof errors.UnknownError) {
@@ -111,6 +113,7 @@ class Wrestler {
       changeEmail.userChangeEmailHandler.bind(this),
       confirmChangeEmail.userConfirmChangeEmailHandler.bind(this),
       users.handleUserGetRequest.bind(this),
+      users.handleUserInviteRequest.bind(this),
       users.handleUserPostRequest.bind(this),
       users.handleUserPutRequest.bind(this),
       users.handleUserPatchRequest.bind(this),
