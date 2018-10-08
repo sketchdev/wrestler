@@ -139,6 +139,12 @@ class WrestlerTester {
   }
 
   // noinspection JSMethodCanBeStatic
+  async expireInviteCode(email) {
+    const inviteExpiresAt = moment().subtract(1, 'day').toDate();
+    await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { inviteExpiresAt });
+  }
+
+  // noinspection JSMethodCanBeStatic
   async getUser(email) {
     return await this.wrestler.db().findOne(common.USER_COLLECTION_NAME, { email });
   }

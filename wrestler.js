@@ -114,6 +114,7 @@ class Wrestler {
       confirmChangeEmail.userConfirmChangeEmailHandler.bind(this),
       users.handleUserGetRequest.bind(this),
       users.handleUserInviteRequest.bind(this),
+      users.handleUserInviteConfirmRequest.bind(this),
       users.handleUserPostRequest.bind(this),
       users.handleUserPutRequest.bind(this),
       users.handleUserPatchRequest.bind(this),

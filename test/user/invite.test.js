@@ -73,12 +73,12 @@ describe('inviting users', () => {
       });
 
       it('returns an error', async () => {
-        assert.deepEqual(resp.body, { base: { messages: ['Users can only be invited.'] } });
+        assert.deepEqual(resp.body, { base: { messages: ['Users can only be invited'] } });
       });
 
     });
 
-    describe('sending bad requests', () => {
+    describe('sending bad requests invite requests', () => {
 
       let tester, transporter, root, rootToken;
 
@@ -108,6 +108,118 @@ describe('inviting users', () => {
         assert.deepEqual(resp.body, { email: { messages: ['Email is invalid'] } });
       });
 
+    });
+
+    describe('sending a good invite confirmation request', () => {
+
+      let resp, tester, transporter;
+      let email = 'bob@mailinator.com';
+      let password = 'welcome@1';
+
+      beforeEach(async () => {
+        const root = { email: 'root@mailinator.com', password: 'welcome@1', role: 'superadmin' };
+        tester = await new WrestlerTesterBuilder().enableUsers({ inviteOnly: true }).createUser(root).build();
+        transporter = tester.getEmailTransporter();
+        const rootToken = await tester.loginUser(root.email, root.password);
+        sinon.spy(transporter, 'sendMail');
+        const inviteResp = await tester.post('/user/invite', { email, role: 'user' }, rootToken);
+        assert.equal(inviteResp.status, 201);
+        const inviteCode = await tester.getInviteCode(email);
+        resp = await tester.post('/user/invite-confirm', { email, inviteCode, password });
+      });
+
+      afterEach(async () => {
+        transporter.sendMail.restore();
+      });
+
+      it('returns the correct status code', async () => {
+        assert.equal(resp.status, 204);
+      });
+
+      it('allows logging in after confirmation', async () => {
+        const loginResp = await tester.post('/user/login', { email, password });
+        assert.equal(loginResp.status, 200);
+      });
+
+    });
+
+    describe('sending bad requests invite confirmation requests', () => {
+
+      let tester, transporter, root, inviteCode;
+      let email = 'bob@mailinator.com';
+      let password = 'welcome@1';
+
+      beforeEach(async () => {
+        root = { email: 'root@mailinator.com', password: 'welcome@1', role: 'superadmin' };
+        tester = await new WrestlerTesterBuilder().enableUsers({ inviteOnly: true }).createUser(root).build();
+        transporter = tester.getEmailTransporter();
+        const rootToken = await tester.loginUser(root.email, root.password);
+        sinon.spy(transporter, 'sendMail');
+        const inviteResp = await tester.post('/user/invite', { email, role: 'user' }, rootToken);
+        assert.equal(inviteResp.status, 201);
+        inviteCode = await tester.getInviteCode(email);
+      });
+
+      it('returns an error if no email is supplied', async () => {
+        const resp = await tester.post('/user/invite-confirm', { emale: 'bob@mailinator.com', password, inviteCode });
+        assert.equal(resp.status, 422);
+        assert.deepEqual(resp.body, { email: { messages: ['Invalid email'] } });
+      });
+
+      it('returns an error if no password is supplied', async () => {
+        const resp = await tester.post('/user/invite-confirm', { email, inviteCode });
+        assert.equal(resp.status, 422);
+        assert.deepEqual(resp.body, { password: { messages: ['Password is required'] } });
+      });
+
+      it('returns an error if code is invalid', async () => {
+        const resp = await tester.post('/user/invite-confirm', { email, password, inviteCode: 'asdadf' });
+        assert.equal(resp.status, 422);
+        assert.deepEqual(resp.body, { inviteCode: { messages: ['Invalid invite code'] } });
+      });
+
+      it('returns an error if code is expired', async () => {
+        await tester.expireInviteCode(email);
+        const resp = await tester.post('/user/invite-confirm', { email, password, inviteCode });
+        assert.equal(resp.status, 422);
+        assert.deepEqual(resp.body, { inviteCode: { messages: ['Expired invite code'] } });
+      });
+
+    });
+
+  });
+
+  describe('failing to update the user', () => {
+
+    let resp, dbDriver;
+    let tester, transporter, root, inviteCode;
+    let email = 'bob@mailinator.com';
+    let password = 'welcome@1';
+
+    beforeEach(async () => {
+      root = { email: 'root@mailinator.com', password: 'welcome@1', role: 'superadmin' };
+      tester = await new WrestlerTesterBuilder().enableUsers({ inviteOnly: true }).createUser(root).build();
+      transporter = tester.getEmailTransporter();
+      const rootToken = await tester.loginUser(root.email, root.password);
+      sinon.spy(transporter, 'sendMail');
+      const inviteResp = await tester.post('/user/invite', { email, role: 'user' }, rootToken);
+      assert.equal(inviteResp.status, 201);
+      inviteCode = await tester.getInviteCode(email);
+      dbDriver = tester.getDatabaseDriver();
+      sinon.stub(dbDriver, 'findOneAndUpdate').rejects('oops');
+      resp = await tester.post('/user/invite-confirm', { email, password, inviteCode });
+    });
+
+    afterEach(async () => {
+      dbDriver.findOneAndUpdate.restore();
+    });
+
+    it('returns the correct status code', async () => {
+      assert.equal(resp.status, 500);
+    });
+
+    it('returns an error response', async () => {
+      assert.deepEqual(resp.body, { base: { messages: ['Unexpected error'] } });
     });
 
   });
