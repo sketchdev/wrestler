@@ -46,7 +46,6 @@ describe('finding users', () => {
       it('omits sensitive details', async () => {
         assert.notExists(resp.body[0].password);
         assert.notExists(resp.body[0].confirmationCode);
-        assert.notExists(resp.body[0].confirmed);
       });
 
     });
@@ -74,7 +73,6 @@ describe('finding users', () => {
       it('omits sensitive details', async () => {
         assert.notExists(resp.body.password);
         assert.notExists(resp.body.confirmationCode);
-        assert.notExists(resp.body.confirmed);
       });
 
     });

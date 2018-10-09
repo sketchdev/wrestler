@@ -48,7 +48,6 @@ describe('registering users', () => {
       it('omits sensitive details', async () => {
         assert.notExists(resp.body.password);
         assert.notExists(resp.body.confirmationCode);
-        assert.notExists(resp.body.confirmed);
       });
 
       it('sends an email', async () => {

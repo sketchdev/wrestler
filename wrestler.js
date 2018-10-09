@@ -163,10 +163,11 @@ class Wrestler {
     let userClone = { ...user };
     const { email, password } = userClone;
     delete userClone.password;
-    const dbUser = await this.dbDriver.findOne({ email });
+    const dbUser = await this.dbDriver.findOne(common.USER_COLLECTION_NAME, { email });
     if (!dbUser) {
+      const now = new Date();
       userClone = await common.hashPassword(userClone, password);
-      userClone = Object.assign({}, userClone, { confirmed: true });
+      userClone = { ...userClone, confirmed: true, createdAt: now, updatedAt: now };
       await this.dbDriver.insertOne(common.USER_COLLECTION_NAME, userClone);
     }
   };
