@@ -43,7 +43,6 @@ describe('inviting users', () => {
       it('omits sensitive details', async () => {
         assert.notExists(resp.body.password);
         assert.notExists(resp.body.confirmationCode);
-        assert.notExists(resp.body.confirmed);
         assert.notExists(resp.body.inviteCode);
       });
 
