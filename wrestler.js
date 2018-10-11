@@ -114,6 +114,7 @@ class Wrestler {
       confirmChangeEmail.userConfirmChangeEmailHandler.bind(this),
       users.handleUserGetRequest.bind(this),
       users.handleUserInviteRequest.bind(this),
+      users.handleResendInvite.bind(this),
       users.handleUserInviteConfirmRequest.bind(this),
       users.handleUserPostRequest.bind(this),
       users.handleUserPutRequest.bind(this),
@@ -167,7 +168,7 @@ class Wrestler {
     if (!dbUser) {
       const now = new Date();
       userClone = await common.hashPassword(userClone, password);
-      userClone = { ...userClone, confirmed: true, createdAt: now, updatedAt: now };
+      userClone = { ...userClone, confirmed: true, active: true, createdAt: now, updatedAt: now };
       await this.dbDriver.insertOne(common.USER_COLLECTION_NAME, userClone);
     }
   };
