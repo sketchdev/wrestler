@@ -1,6 +1,6 @@
 {
   "name": "wrestler",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "An express middleware which provides a solid foundation for a RESTful API.",
   "keywords": [
     "restful",
