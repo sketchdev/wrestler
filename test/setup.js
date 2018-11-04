@@ -183,6 +183,7 @@ class WrestlerTesterBuilder {
   async build() {
     const wrestler = new Wrestler();
     await wrestler.setup(this.options);
+    await wrestler.db().clean(common.USER_COLLECTION_NAME);
     for (const user of this.users) {
       await wrestler.createUserIfNotExist(user);
     }

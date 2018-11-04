@@ -1,4 +1,8 @@
 language: node_js
 node_js:
   - "node"
+services:
+  - mongodb
+before_script:
+  - sleep 15 # allows mongo to warm up
 after_success: yarn run coverage

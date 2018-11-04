@@ -49,9 +49,9 @@ describe('authorizing users', () => {
           // allow guests to read, update, and delete users but only their own user
           { roles: ['guest'], resource: 'user', methods: ['GET', 'PATCH', 'DELETE'], onlyOwned: true },
           // allow admins to do anything to widgets
-          { roles: ['admin'], resource: 'widgets', methods: '*' },
+          { roles: ['admin'], resource: 'widget', methods: '*' },
           // allow guests to read any widgets
-          { roles: ['guest'], resource: 'widgets', methods: ['GET'] },
+          { roles: ['guest'], resource: 'widget', methods: ['GET'] },
           // allow anybody to do anything with any foo that they own
           { roles: '*', resource: 'foo', methods: '*', onlyOwned: true },
         ],
@@ -102,23 +102,23 @@ describe('authorizing users', () => {
       });
 
       it('allows creating widgets', async () => {
-        const resp = await tester.post('/widgets', { color: 'blue' }, rootToken);
+        const resp = await tester.post('/widget', { color: 'blue' }, rootToken);
         assert.equal(resp.status, 201);
       });
 
       it('allows updating widgets', async () => {
         const newColor = 'red';
-        const createResp = await tester.post('/widgets', { color: 'blue' }, rootToken);
+        const createResp = await tester.post('/widget', { color: 'blue' }, rootToken);
         assert.equal(createResp.status, 201);
-        const updateResp = await tester.patch(`/widgets/${createResp.body.id}`, { color: newColor }, rootToken);
+        const updateResp = await tester.patch(`/widget/${createResp.body.id}`, { color: newColor }, rootToken);
         assert.equal(updateResp.status, 200);
         assert.equal(updateResp.body.color, newColor);
       });
 
       it('allows deleting widgets', async () => {
-        const createResp = await tester.post('/widgets', { color: 'blue' }, rootToken);
+        const createResp = await tester.post('/widget', { color: 'blue' }, rootToken);
         assert.equal(createResp.status, 201);
-        const deleteResp = await tester.delete(`/widgets/${createResp.body.id}`, rootToken);
+        const deleteResp = await tester.delete(`/widget/${createResp.body.id}`, rootToken);
         assert.equal(deleteResp.status, 204);
       });
 
@@ -138,6 +138,11 @@ describe('authorizing users', () => {
     });
 
     describe('as a guest', () => {
+
+      beforeEach(async () => {
+        await tester.dropWidgets();
+        await tester.clean('foo');
+      });
 
       it('creates a guest even if trying to create an admin', async () => {
         await testCreatingUsers('admin@mailinator.com', 'admin', guest1.token, 'guest');
@@ -176,26 +181,26 @@ describe('authorizing users', () => {
       });
 
       it('prevents creating widgets', async () => {
-        const resp = await tester.post('/widgets', { color: 'blue' }, guest1.token);
+        const resp = await tester.post('/widget', { color: 'blue' }, guest1.token);
         assert.equal(resp.status, 403);
       });
 
       it('allows reading widgets', async () => {
         const color = 'blue';
-        const createResp = await tester.post('/widgets', { color }, rootToken);
+        const createResp = await tester.post('/widget', { color }, rootToken);
         assert.equal(createResp.status, 201);
-        const readResp = await tester.get(`/widgets/${createResp.body.id}`, guest1.token);
+        const readResp = await tester.get(`/widget/${createResp.body.id}`, guest1.token);
         assert.equal(readResp.status, 200);
         assert.equal(readResp.body.color, color);
       });
 
       it('prevents updating widgets', async () => {
-        const resp = await tester.patch('/widgets/1', { color: 'red' }, guest1.token);
+        const resp = await tester.patch('/widget/1', { color: 'red' }, guest1.token);
         assert.equal(resp.status, 403);
       });
 
       it('prevents deleting widgets', async () => {
-        const resp = await tester.delete('/widgets/1', guest1.token);
+        const resp = await tester.delete('/widget/1', guest1.token);
         assert.equal(resp.status, 403);
       });
 
