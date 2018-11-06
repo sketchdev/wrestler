@@ -8,6 +8,7 @@ const changeEmail = require('./lib/users/change_email');
 const email = require('./lib/email');
 const confirmChangeEmail = require('./lib/users/confirm_change_email');
 const common = require('./lib/users/common');
+const bulk = require('./lib/bulk');
 
 class Wrestler {
 
@@ -124,6 +125,17 @@ class Wrestler {
   };
 
   // noinspection JSMethodCanBeStatic
+  bulkMiddleware() {
+    return [
+      // restful.handleRestfulPostRequest.bind(this),
+      // restful.handleRestfulGetRequest.bind(this),
+      // restful.handleRestfulPutRequest.bind(this),
+      bulk.handleBulkPatchRequest.bind(this),
+      // restful.handleRestfulDeleteRequest.bind(this),
+    ]
+  };
+
+  // noinspection JSMethodCanBeStatic
   restfulMiddleware() {
     return [
       restful.handleRestfulPostRequest.bind(this),
@@ -154,6 +166,7 @@ class Wrestler {
       this.authMiddleware(),
       this.validateMiddleware(),
       this.userMiddleware(),
+      this.bulkMiddleware(),
       this.restfulMiddleware(),
       this.emailMiddleware(),
       this.errorMiddleware()
