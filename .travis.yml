@@ -7,4 +7,5 @@ services:
 before_script:
   - sleep 15 # allows mongo to warm up
   - psql -c 'create database wrestler;' -U postgres
+  - yarn pg-db-migrate up
 after_success: yarn run coverage
