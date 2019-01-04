@@ -16,11 +16,11 @@ describe('finding widgets', () => {
     let coconut, apple, banana, egg, fig;
 
     beforeEach(async () => {
-      coconut = await tester.createWidget({ name: 'coconut', company: 'acme' });
-      apple = await tester.createWidget({ name: 'apple', company: 'momo' });
-      banana = await tester.createWidget({ name: 'banana', company: 'momo' });
-      egg = await tester.createWidget({ name: 'egg', company: 'coco' });
-      fig = await tester.createWidget({ name: 'fig', company: 'nono' });
+      coconut = await tester.createWidget({ name: 'coconut', company: 'acme', createdBy: null, updatedBy: null, color: null });
+      apple = await tester.createWidget({ name: 'apple', company: 'momo', createdBy: null, updatedBy: null, color: null });
+      banana = await tester.createWidget({ name: 'banana', company: 'momo', createdBy: null, updatedBy: null, color: null });
+      egg = await tester.createWidget({ name: 'egg', company: 'coco', createdBy: null, updatedBy: null, color: null });
+      fig = await tester.createWidget({ name: 'fig', company: 'nono', createdBy: null, updatedBy: null, color: null });
     });
 
     describe('finding all', () => {
@@ -62,6 +62,7 @@ describe('finding widgets', () => {
       });
 
       it('returns the array of entities', async () => {
+        assert.isNotNull(resp.body, `response is invalid: ${resp.status} | ${resp.body}`);
         assert.deepEqual(resp.body.find(e => e.name === 'coconut'), coconut);
         assert.deepEqual(resp.body.find(e => e.name === 'apple'), apple);
       });

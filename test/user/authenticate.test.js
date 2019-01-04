@@ -92,7 +92,8 @@ describe('authenticating users', () => {
       });
 
       it('returns an error if the jwt user is not found', async () => {
-        const token = await jwtSign({ id: 'blah' }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
+        const id = process.env.PG_CONNECTION_STRING ? 9999999 : 'blah';
+        const token = await jwtSign({ id }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
         const resp = await tester.get('/widget', token);
         assert.equal(resp.status, 403);
       });

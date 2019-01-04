@@ -1,6 +1,6 @@
 {
   "name": "wrestler",
-  "version": "0.8.8",
+  "version": "0.9.0",
   "description": "An express middleware which provides a solid foundation for a RESTful API.",
   "keywords": [
     "restful",
@@ -10,12 +10,14 @@
   ],
   "main": "wrestler.js",
   "scripts": {
-    "test": "npm run test-nedb && npm run test-mongo",
-    "test-nedb": "NODE_ENV=test nyc mocha --recursive --exit",
-    "test-mongo": "NODE_ENV=test MONGO_DB_URI=mongodb://localhost:27017/wrestler MONGO_DB_NAME=wrestler nyc mocha --recursive --exit",
+    "test": "yarn test-nedb && yarn test-mongo && yarn test-pg",
+    "test-nedb": "NODE_ENV=test nyc mocha --recursive --exit --slow 150",
+    "test-mongo": "NODE_ENV=test MONGO_DB_URI=mongodb://localhost:27017/wrestler MONGO_DB_NAME=wrestler nyc mocha --recursive --exit --slow 150",
+    "test-pg": "NODE_ENV=test PG_CONNECTION_STRING=postgresql://localhost:5432/wrestler nyc mocha --recursive --exit --slow 150",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start-mongo": "docker run --name wrestler -p 27017:27017 -d --rm mongo:latest",
-    "stop-mongo": "docker container stop wrestler"
+    "stop-mongo": "docker container stop wrestler",
+    "pg-db-migrate": "DATABASE_URL=postgresql://localhost:5432/wrestler db-migrate"
   },
   "author": "Cody Frederick",
   "bugs": {
@@ -41,6 +43,8 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "coveralls": "3.0.2",
+    "db-migrate": "0.11.4",
+    "db-migrate-pg": "0.4.0",
     "dotenv": "^6.0.0",
     "eslint": "5.8.0",
     "express": "^4.16.3",

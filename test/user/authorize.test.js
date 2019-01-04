@@ -59,7 +59,7 @@ describe('authorizing users', () => {
           // only handle the POST /user scenario
           if (req.method !== 'POST' && req.wrestler.resource !== 'user') return;
           // force the `guest` role if either no user is authenticated, or a non-admin user is authenticated
-          if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
+          if (req.wrestler.resource === 'user' && (!req.session || !req.session.user || req.session.user.role !== 'admin')) {
             req.body = Object.assign({}, req.body, { role: 'guest' });
           }
         }

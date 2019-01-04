@@ -3,6 +3,8 @@ node_js:
   - "node"
 services:
   - mongodb
+  - postgresql
 before_script:
   - sleep 15 # allows mongo to warm up
+  - psql -c 'create database wrestler;' -U postgres
 after_success: yarn run coverage

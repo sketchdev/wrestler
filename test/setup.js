@@ -7,6 +7,28 @@ const _ = require('lodash');
 const moment = require('moment');
 const common = require('../lib/users/common');
 const util = require('util');
+const MongoDriver = require('../lib/mongo');
+const NeDbDriver = require('../lib/nedb');
+const PgDriver = require('../lib/pg');
+
+let dbDriver;
+
+// used to limit the number of database connections
+const openDatabaseDriver = async () => {
+  if (!dbDriver) {
+    if (process.env.MONGO_DB_URI && process.env.MONGO_DB_NAME) {
+      dbDriver = new MongoDriver({});
+    }
+    if (process.env.PG_CONNECTION_STRING) {
+      dbDriver = new PgDriver({});
+    }
+    if (!dbDriver) {
+      dbDriver = new NeDbDriver({});
+    }
+  }
+  await dbDriver.connect();
+  return dbDriver;
+};
 
 class WrestlerTester {
 
@@ -43,7 +65,7 @@ class WrestlerTester {
   async createUser(email, password, properties) {
     const resp = await this.request.post('/user').send(Object.assign({ email, password }, properties));
     if (resp.status !== 201) {
-      throw new Error(`failed to create user: ${email}: ${util.inspect(resp.body)}`);
+      throw new Error(`failed to create user: ${email}: ${resp.status} || ${util.inspect(resp.body)}`);
     }
     const user = (resp).body;
     await this.wrestler.db().findOneAndUpdate(common.USER_COLLECTION_NAME, { email }, { confirmed: true });
@@ -62,9 +84,10 @@ class WrestlerTester {
   }
 
   async loginUser(email, password) {
-    const { token } = (await this.request.post('/user/login').send({ email, password })).body;
+    const resp = await this.request.post('/user/login').send({ email, password });
+    const { token } = resp.body;
     if (!token) {
-      throw new Error(`failed to login user: ${email}`);
+      throw new Error(`failed to login user: ${email}: ${resp.status} || ${util.inspect(resp.body)}`);
     }
     return token;
   }
@@ -153,7 +176,7 @@ class WrestlerTester {
 
 class WrestlerTesterBuilder {
 
-  constructor(options={}) {
+  constructor(options = {}) {
     const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
     const transporter = nodemailer.createTransport(transport);
     this.options = Object.assign({}, { email: { transporter } }, options);
@@ -181,8 +204,10 @@ class WrestlerTesterBuilder {
   }
 
   async build() {
+    const driver = await openDatabaseDriver();
+    const options = Object.assign(this.options, { database: { driver }});
     const wrestler = new Wrestler();
-    await wrestler.setup(this.options);
+    await wrestler.setup(options);
     await wrestler.db().clean(common.USER_COLLECTION_NAME);
     for (const user of this.users) {
       await wrestler.createUserIfNotExist(user);

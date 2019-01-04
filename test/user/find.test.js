@@ -63,6 +63,7 @@ describe('finding users', () => {
       });
 
       it('returns user details', async () => {
+        assert.isNotNull(resp.body, `response is invalid: ${resp.status} | ${resp.body}`);
         assert.equal(resp.body.email, 'tom@mailinator.com');
         assert.equal(resp.body.age, 40);
         assert.exists(resp.body.createdAt);

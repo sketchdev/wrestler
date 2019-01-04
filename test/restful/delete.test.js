@@ -18,7 +18,7 @@ describe('deleting widgets', () => {
       let resp, widget;
 
       beforeEach(async () => {
-        widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: 'brown' });
+        widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: 'brown', createdBy: null, updatedBy: null });
         const findResp = await tester.get(`/widget/${widget.id}`);
         assert.equal(findResp.status, 200);
         assert.deepEqual(findResp.body, widget);

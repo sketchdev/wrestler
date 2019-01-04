@@ -81,6 +81,7 @@ class Wrestler {
       }
       res.status(code).json(res.wrestler.errors);
     } else {
+      if (process.env.NODE_ENV === 'test') console.log('ERROR', err);
       next(err);
     }
   };

@@ -16,7 +16,7 @@ describe('finding widgets by id', () => {
     let widget;
 
     beforeEach(async () => {
-      widget = await tester.createWidget({ name: 'coconut', company: 'acme' });
+      widget = await tester.createWidget({ name: 'coconut', company: 'acme', color: null, createdBy: null, updatedBy: null });
     });
 
     describe('sending a good request', () => {

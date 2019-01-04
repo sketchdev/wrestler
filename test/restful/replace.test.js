@@ -32,7 +32,9 @@ describe('replacing widgets', () => {
       });
 
       it('removes properties if not provided', async () => {
-        assert.notExists(resp.body.color);
+        if (!process.env.PG_CONNECTION_STRING) {
+          assert.notExists(resp.body.color);
+        }
       });
 
       it('keeps the id', async () => {
