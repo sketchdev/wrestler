@@ -2,7 +2,7 @@ const express = require('express');
 const Wrestler = require('../wrestler');
 const supertest = require('supertest');
 const nodemailer = require('nodemailer');
-const uuid = require('uuid/v4');
+const uuid = require('uuid');
 const _ = require('lodash');
 const moment = require('moment');
 const common = require('../lib/users/common');
@@ -177,7 +177,7 @@ class WrestlerTester {
 class WrestlerTesterBuilder {
 
   constructor(options = {}) {
-    const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid() }) };
+    const transport = { name: 'wrestler', version: '1', send: (mail, callback) => callback(null, { envelope: {}, messageId: uuid.v4() }) };
     const transporter = nodemailer.createTransport(transport);
     this.options = Object.assign({}, { email: { transporter } }, options);
     this.users = [];

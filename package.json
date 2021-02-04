@@ -10,7 +10,7 @@
   ],
   "main": "wrestler.js",
   "scripts": {
-    "test": "yarn test-nedb && yarn test-mongo && yarn test-pg",
+    "test": "yarn test-nedb && yarn test-pg && yarn test-mongo",
     "test-nedb": "NODE_ENV=test nyc mocha --recursive --exit --slow 150",
     "test-mongo": "NODE_ENV=test MONGO_DB_URI=mongodb://localhost:27017/wrestler MONGO_DB_NAME=wrestler nyc mocha --recursive --exit --slow 150",
     "test-pg": "NODE_ENV=test PG_CONNECTION_STRING=postgresql://localhost:5432/wrestler nyc mocha --recursive --exit --slow 150",
@@ -28,30 +28,29 @@
   },
   "license": "MIT",
   "dependencies": {
-    "express-validator": "^5.3.0",
-    "jsonwebtoken": "8.3.0",
-    "knex": "0.15.2",
-    "lodash": "4.17.10",
-    "moment": "2.22.2",
+    "express-validator": "^6.9.2",
+    "jsonwebtoken": "8.5.1",
+    "knex": "^0.21.17",
+    "lodash": "^4.17.20",
+    "moment": "^2.29.1",
     "mongodb": "^3.1.1",
     "nedb": "^1.8.0",
-    "nodemailer": "4.6.8",
-    "pg": "7.4.3",
-    "uuid": "3.3.2",
-    "validator": "^10.5.0"
+    "nodemailer": "^6.4.17",
+    "pg": "8.5.1",
+    "uuid": "^8.3.2",
+    "validator": "^13.5.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "coveralls": "3.0.2",
-    "db-migrate": "0.11.4",
-    "db-migrate-pg": "0.4.0",
-    "dotenv": "^6.0.0",
-    "eslint": "5.8.0",
+    "coveralls": "3.1.0",
+    "db-migrate": "0.11.12",
+    "db-migrate-pg": "1.2.2",
+    "dotenv": "^8.2.0",
     "express": "^4.16.3",
-    "mocha": "^5.2.0",
+    "mocha": "^8.2.1",
     "morgan": "^1.9.0",
-    "nyc": "12.0.2",
-    "sinon": "6.1.5",
-    "supertest": "^3.1.0"
+    "nyc": "^15.1.0",
+    "sinon": "9.2.4",
+    "supertest": "6.1.3"
   }
 }
