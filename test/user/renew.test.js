@@ -1,5 +1,6 @@
 const common = require('../../lib/users/common');
 const { WrestlerTesterBuilder } = require('../setup');
+const jwtHelper = require('../jwt_helper');
 const { assert } = require('chai');
 const util = require('util');
 const jwt = require('jsonwebtoken');
@@ -25,7 +26,7 @@ describe('renewing user jwt', () => {
     });
 
     it('ensures expired tokens are rejected', async () => {
-      const epochTime = getEpochTime();
+      const epochTime = jwtHelper.getEpochTime();
       const expiredToken = await jwtSign({...tom.user, iat: epochTime - 600, exp: epochTime - 330}, JWT_SECRET_KEY, { algorithm: 'HS512' });
       const resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, expiredToken);
       assert.equal(resp.status, 401);
@@ -43,7 +44,7 @@ describe('renewing user jwt', () => {
         let expiredToken;
 
         beforeEach(async () => {
-          const epochTime = getEpochTime();
+          const epochTime = jwtHelper.getEpochTime();
           expiredToken = await jwtSign({...tom.user, iat: epochTime - 600, exp: epochTime - 330}, JWT_SECRET_KEY, { algorithm: 'HS512' });
         });
 
@@ -59,7 +60,7 @@ describe('renewing user jwt', () => {
         let nearExpirationToken;
 
         beforeEach(async () => {
-          const epochTime = getEpochTime();
+          const epochTime = jwtHelper.getEpochTime();
           nearExpirationToken = await jwtSign({...tom.user, iat: epochTime - 3600, exp: epochTime + 330}, JWT_SECRET_KEY, { algorithm: 'HS512' });
         });
 
@@ -69,11 +70,10 @@ describe('renewing user jwt', () => {
         });
 
         it('responds with new token', async () => {
-          const tokenRequestTime = getEpochTime();
+          const tokenRequestTime = jwtHelper.getEpochTime();
           const resp = await tester.post(`/user/refresh-token`, {}, nearExpirationToken);
           const newUserToken = resp.body.token
-          const payloadB64 = newUserToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-          const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('ascii'));
+          const payload = jwtHelper.getJwtPayload(newUserToken);
 
           assert.notEqual(newUserToken, nearExpirationToken);
 
@@ -98,7 +98,3 @@ describe('renewing user jwt', () => {
   });
 
 });
-
-const getEpochTime = () => {
-  return Math.floor(Date.now() / 1000);
-};

@@ -14,7 +14,7 @@ class Wrestler {
   constructor() {
     this.dbDriver = undefined;
     this.effectiveOptions = undefined;
-    this.defaultOptions = { pageSize: 20, users: false, restrictResources: false, resources: {} };
+    this.defaultOptions = { pageSize: 20, users: false, restrictResources: false, resources: {}, jwtTimeout: '1h' };
   }
 
   setupOptions(options = {}) {

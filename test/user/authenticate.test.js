@@ -1,5 +1,6 @@
 const common = require('../../lib/users/common');
 const { WrestlerTesterBuilder } = require('../setup');
+const jwtHelper = require('../jwt_helper');
 const { assert } = require('chai');
 const util = require('util');
 const jwt = require('jsonwebtoken');
@@ -10,15 +11,12 @@ describe('authenticating users', () => {
 
   let tester;
 
-  beforeEach(async () => {
-    tester = await new WrestlerTesterBuilder().enableUsers().build();
-    await tester.dropWidgets();
-    await tester.dropUsers();
-  });
-
   context('with default options', () => {
 
     beforeEach(async () => {
+      tester = await new WrestlerTesterBuilder().enableUsers().build();
+      await tester.dropWidgets();
+      await tester.dropUsers();
       await tester.createUser('tom@mailinator.com', 'welcome@1');
     });
 
@@ -101,6 +99,7 @@ describe('authenticating users', () => {
     });
 
     describe('authenticating with jwt', () => {
+
       let tom;
 
       context('when jwt is valid', () => {
@@ -110,6 +109,12 @@ describe('authenticating users', () => {
         });
 
         describe('making an authenticated request', () => {
+
+          it('has a token that expires in 1hr', () => {
+            const epochTime = jwtHelper.getEpochTime();
+            const tomPayload = jwtHelper.getJwtPayload(tom.token);
+            assert.equal(tomPayload.exp, epochTime + 3600);
+          });
 
           it('returns 200', async () => {
             resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, tom.token);
@@ -135,6 +140,46 @@ describe('authenticating users', () => {
           it('returns 401', async () => {
             const resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, expiredToken);
             assert.equal(resp.status, 401);
+          });
+
+        });
+
+      });
+
+    });
+
+  });
+
+  context('with custom jwt options', () => {
+
+    beforeEach(async () => {
+      tester = await new WrestlerTesterBuilder({ jwtTimeout: '12h' }).enableUsers().build();
+      await tester.dropWidgets();
+      await tester.dropUsers();
+      await tester.createUser('tom@mailinator.com', 'welcome@1');
+    });
+
+    describe('authenticating with jwt', () => {
+
+      let tom;
+
+      context('when jwt is valid', () => {
+
+        beforeEach(async () => {
+          tom = await tester.createAndLoginUser('tomjwt@mailinator.com', 'welcome@1');
+        });
+
+        describe('making an authenticated request', () => {
+
+          it('has a token that expires in 12hrs', () => {
+            const epochTime = jwtHelper.getEpochTime();
+            const tomPayload = jwtHelper.getJwtPayload(tom.token);
+            assert.equal(tomPayload.exp, epochTime + 43200);
+          });
+
+          it('returns 200', async () => {
+            resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, tom.token);
+            assert.equal(resp.status, 200);
           });
 
         });
