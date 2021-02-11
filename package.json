@@ -1,6 +1,6 @@
 {
   "name": "wrestler",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "An express middleware which provides a solid foundation for a RESTful API.",
   "keywords": [
     "restful",
@@ -17,7 +17,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start-mongo": "docker run --name wrestler -p 27017:27017 -d --rm mongo:latest",
     "stop-mongo": "docker container stop wrestler",
-    "pg-db-migrate": "DATABASE_URL=postgresql://localhost:5432/wrestler db-migrate"
+    "pg-db-migrate": "DATABASE_URL=postgresql://localhost:5432/wrestler db-migrate up"
   },
   "author": "Cody Frederick",
   "bugs": {

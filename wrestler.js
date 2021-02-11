@@ -121,6 +121,7 @@ class Wrestler {
       users.handleUserPutRequest.bind(this),
       users.handleUserPatchRequest.bind(this),
       users.handleUserDeleteRequest.bind(this),
+      users.handleUserRefreshTokenRequest.bind(this)
     ];
   };
 
