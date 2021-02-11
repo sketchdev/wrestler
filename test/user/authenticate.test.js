@@ -72,7 +72,7 @@ describe('authenticating users', () => {
 
     });
 
-    describe('sending a bad requests', () => {
+    describe('sending bad requests', () => {
 
       it('returns an error if the email is not found', async () => {
         const resp = await tester.post('/user/login', { email: 'thomas@mailinator.com', password: 'welcome@2' });
@@ -96,6 +96,49 @@ describe('authenticating users', () => {
         const token = await jwtSign({ id }, JWT_SECRET_KEY, { algorithm: 'HS512', expiresIn: '1h' });
         const resp = await tester.get('/widget', token);
         assert.equal(resp.status, 403);
+      });
+
+    });
+
+    describe('authenticating with jwt', () => {
+      let tom;
+
+      context('when jwt is valid', () => {
+
+        beforeEach(async () => {
+          tom = await tester.createAndLoginUser('tomjwt@mailinator.com', 'welcome@1');
+        });
+
+        describe('making an authenticated request', () => {
+
+          it('returns 200', async () => {
+            resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, tom.token);
+            assert.equal(resp.status, 200);
+          });
+
+        });
+
+      });
+
+      context('when jwt is expired', () => {
+
+        let expiredToken;
+
+        beforeEach(async () => {
+          tom = await tester.createAndLoginUser('tomjwt_old@mailinator.com', 'welcome@1');
+          const epochTime = Math.floor(Date.now() / 1000);
+          expiredToken = await jwtSign({...tom.user, iat: epochTime - 600, exp: epochTime - 330}, JWT_SECRET_KEY, { algorithm: 'HS512' });
+        });
+
+        describe('making an authenticated request', () => {
+
+          it('returns 401', async () => {
+            const resp = await tester.patch(`/user/${tom.user.id}`, { age: 41 }, expiredToken);
+            assert.equal(resp.status, 401);
+          });
+
+        });
+
       });
 
     });
