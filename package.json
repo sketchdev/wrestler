@@ -30,7 +30,7 @@
   "dependencies": {
     "express-validator": "^6.9.2",
     "jsonwebtoken": "8.5.1",
-    "knex": "^0.21.17",
+    "knex": "^2.4.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mongodb": "^3.1.1",
